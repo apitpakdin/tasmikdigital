@@ -17,6 +17,13 @@ var Cetak = (function () {
     return '<header class="kop">' + (c.logo ? '<img class="logo" src="' + esc(c.logo) + '" alt="">' : '') +
       '<div><h1>' + esc(c.namaSekolah || API.sekolah.nama) + '</h1>' + (c.alamat ? '<p>' + esc(c.alamat) + '</p>' : '') + '</div></header>';
   }
+  /* Margin halaman ditetapkan 0 supaya pelayar TIDAK mencetak header/footer
+     (alamat laman, tarikh, nombor halaman). Ruang tepi dibuat semula di sini:
+     thead/tfoot kosong diulang pada setiap halaman = margin atas & bawah. */
+  function bingkai(isi) {
+    return '<table class="bingkai-cetak"><thead><tr><td></td></tr></thead><tfoot><tr><td></td></tr></tfoot><tbody><tr><td>' + isi + '</td></tr></tbody></table>';
+  }
+
   function cetakSekarang(el) {
     document.body.classList.add('mod-cetak');
     var selesai = function () { document.body.classList.remove('mod-cetak'); el.innerHTML = ''; window.removeEventListener('afterprint', selesai); };
@@ -28,14 +35,14 @@ var Cetak = (function () {
   function laporan(o) {
     var el = kawasan();
     var c = App.DB.config;
-    el.innerHTML = '<div class="halaman-cetak">' + kop() +
+    el.innerHTML = bingkai('<div class="halaman-cetak">' + kop() +
       '<h2 class="tajuk-laporan">' + esc(o.tajuk) + '</h2>' + (o.sub ? '<p class="sub-laporan">' + esc(o.sub) + '</p>' : '') +
       '<table class="jadual-cetak"><thead><tr>' + o.headers.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
       (o.rows.length ? o.rows.map(function (r) { return '<tr>' + r.map(function (v) { return '<td>' + esc(v) + '</td>'; }).join('') + '</tr>'; }).join('') : '<tr><td colspan="' + o.headers.length + '">Tiada data</td></tr>') +
       '</tbody></table>' +
       '<div class="tandatangan"><div><p>Disediakan oleh:</p><span class="garis"></span><b>' + esc(App.user.nama) + '</b><small>' + esc(App.NAMA_PERANAN[App.user.peranan]) + '</small></div>' +
       '<div><p>Disahkan oleh:</p><span class="garis"></span><b>' + esc(c.namaGB || '') + '</b><small>' + esc(c.jawatanGB || 'Guru Besar') + '</small><small>' + esc(c.namaSekolah || '') + '</small><small>Tarikh: ' + esc(UI.tarikh(new Date().toISOString(), true)) + '</small></div></div>' +
-      '<footer class="kaki-cetak">Dijana melalui Tasmik Digital pada ' + esc(UI.tarikh(new Date().toISOString(), true) + ', ' + UI.masa(new Date().toISOString())) + '</footer></div>';
+      '<footer class="kaki-cetak">Dijana melalui Tasmik Digital pada ' + esc(UI.tarikh(new Date().toISOString(), true) + ', ' + UI.masa(new Date().toISOString())) + '</footer></div>');
     cetakSekarang(el);
   }
 
@@ -53,11 +60,11 @@ var Cetak = (function () {
       var el = kawasan();
       var c = App.DB.config;
       var nama = c.namaSekolah || API.sekolah.nama;
-      el.innerHTML = '<div class="slip-grid">' + list.map(function (m, i) {
+      el.innerHTML = bingkai('<div class="slip-grid">' + list.map(function (m, i) {
         return '<article class="slip"><div class="slip-kepala">' + (c.logo ? '<img class="logo" src="' + esc(c.logo) + '" alt="">' : '') + '<div><b>' + esc(nama) + '</b><span>Kemajuan Bacaan Al-Quran</span></div></div>' +
           '<div class="slip-isi"><div class="slip-qr" id="qr' + i + '"></div><div><p class="slip-nama">' + esc(m.nama) + '</p><p>' + esc(App.labelKelasPenuh(m.darjah + '|' + m.kelas)) + '</p>' +
           '<p class="slip-arah">Imbas kod QR untuk lihat kemajuan bacaan anak anda.</p><p class="slip-kod">Kod: <b>' + esc(m.kodIbuBapa) + '</b></p></div></div></article>';
-      }).join('') + '</div>';
+      }).join('') + '</div>');
       list.forEach(function (m, i) {
         /* global qrcode */
         var qr = qrcode(0, 'M');
@@ -85,5 +92,5 @@ var Cetak = (function () {
     }).catch(function () { UI.toast('Gagal memuatkan modul Excel — muat semula aplikasi.', 'err'); });
   }
 
-  return { kop: kop, kawasan: kawasan, cetakSekarang: cetakSekarang, laporan: laporan, slip: slip, excel: excel, pautanIbuBapa: pautanIbuBapa, XLSX_LIB: XLSX_LIB, QR_LIB: QR_LIB };
+  return { kop: kop, kawasan: kawasan, bingkai: bingkai, cetakSekarang: cetakSekarang, laporan: laporan, slip: slip, excel: excel, pautanIbuBapa: pautanIbuBapa, XLSX_LIB: XLSX_LIB, QR_LIB: QR_LIB };
 })();

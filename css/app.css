@@ -524,7 +524,22 @@ body.ada-modal { overflow: hidden; }
 /* ── Cetak ── */
 #cetak { display: none; }
 @media print {
-  @page { size: A4; margin: 12mm; }
+  @page { size: A4; margin: 0; }   /* 0 = tiada header/footer pelayar */
+  .bingkai-cetak { width: 100%; border-collapse: collapse; }
+  .bingkai-cetak > thead > tr > td { height: 12mm; padding: 0; }
+  .bingkai-cetak > tfoot > tr > td { height: 12mm; padding: 0; }
+  .bingkai-cetak > tbody > tr > td { padding: 0 13mm; vertical-align: top; }
+  /* Transkrip: halaman eksplisit (maks 2 muka surat setiap murid) */
+  .hal-transkrip { box-sizing: border-box; padding: 11mm 13mm 6mm; break-after: page; page-break-after: always; }
+  .hal-transkrip:last-child { break-after: auto; page-break-after: auto; }
+  .transkrip + .transkrip { break-before: page; page-break-before: always; }
+  .hal-transkrip .kaki-cetak { margin-top: 10px; }
+  .kepala-hal2 { font-size: 8pt; color: #555; border-bottom: 1px solid #0b5d4b; padding-bottom: 4px; margin: 0 0 6px; }
+  .transkrip .kbs-item-grid { columns: 3; column-gap: 12px; font-size: 7.2pt; }
+  .transkrip .kbs-item-grid li { line-height: 1.28; }
+  .transkrip .kbs-tanda { min-width: 18px; font-size: 6.5pt; }
+  .transkrip .jadual-cetak { font-size: 8.5pt; }
+  .transkrip .jadual-cetak th, .transkrip .jadual-cetak td { padding: 2.5px 5px; }
   body.mod-cetak > *:not(#cetak) { display: none !important; }
   body.mod-cetak { background: #fff !important; color: #000; }
   body.mod-cetak #cetak { display: block; }
@@ -640,3 +655,10 @@ body.ada-modal { overflow: hidden; }
 .semak-p-pilih { display: grid; gap: 10px; grid-template-columns: minmax(260px, 1.4fr) 1fr 1fr auto; align-items: end; }
 @media (max-width: 899px) { .semak-p-pilih { grid-template-columns: 1fr; } }
 .tab .kiraan { margin-left: 4px; }
+
+/* Transkrip pukal (skrin) */
+.tp-senarai { margin: 12px 0 0; padding-left: 22px; display: grid; gap: 12px; }
+.tp-murid { display: grid; gap: 6px; padding-bottom: 12px; border-bottom: 1px solid var(--garis); }
+.tp-murid textarea { width: 100%; border-radius: 10px; border: 1px solid var(--garis-kuat); background: var(--permukaan); padding: 8px 10px; font-size: .92rem; resize: vertical; }
+.tp-frasa .cip { min-height: 30px; padding: 4px 10px; font-size: .78rem; }
+.tp-frasa [data-cadang] { background: var(--emas-lembut); border-color: var(--emas); }

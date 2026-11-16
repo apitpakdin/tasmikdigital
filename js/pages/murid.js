@@ -47,6 +47,7 @@
       (kelas.length > 1 ? '<select id="mKelas" aria-label="Kelas"><option value="">Semua kelas</option>' + kelas.map(function (k) { return '<option value="' + esc(k) + '"' + (st.kelas === k ? ' selected' : '') + '>' + esc(App.labelKelasPenuh(k)) + '</option>'; }).join('') + '</select>' : '') +
       ('<select id="mStatus" aria-label="Status"><option' + (st.status === 'Aktif' ? ' selected' : '') + '>Aktif</option><option value="Tamat"' + (st.status === 'Tamat' ? ' selected' : '') + '>Alumni</option><option' + (st.status === 'Pindah' ? ' selected' : '') + '>Pindah</option><option' + (st.status === 'Dikecualikan' ? ' selected' : '') + '>Dikecualikan</option><option' + (st.status === 'Semua' ? ' selected' : '') + '>Semua</option></select>') +
       '<span class="ruang"></span>' +
+      (kelasCetak && (bolehCetak(kelasCetak) || App.ialah('gb')) && list.length ? '<button class="btn btn-ghost" id="mTranskrip">' + ikon('file') + ' Transkrip kelas</button>' : '') +
       (kelasCetak && bolehCetak(kelasCetak) ? '<button class="btn btn-ghost" id="mSlip">' + ikon('qr') + ' Cetak slip QR</button>' : (bolehCetak('') || App.ialah('guru') ? '<span class="lembut kecil">Pilih satu kelas untuk cetak slip QR</span>' : '')) +
       (App.pentadbir() || (App.ialah('guru') && App.kelasSaya().length) ? '<button class="btn btn-utama" id="mTambah">' + ikon('plus') + ' Tambah murid</button>' : '') +
       '</div><p class="lembut kecil kiraan-senarai">' + list.length + ' murid</p>' +
@@ -66,6 +67,13 @@
     var sk = UI.$('#mKelas'); if (sk) sk.addEventListener('change', function () { st.kelas = this.value; paparSenarai(el); });
     var ss = UI.$('#mStatus'); if (ss) ss.addEventListener('change', function () { st.status = this.value; paparSenarai(el); });
     var t = UI.$('#mTambah'); if (t) t.addEventListener('click', function () { borang(null, el); });
+    var tk = UI.$('#mTranskrip'); if (tk) tk.addEventListener('click', function () {
+      // Semua murid kelas ini ikut penapis status (abaikan kotak carian)
+      Transkrip.pukal(App.DB.murid.filter(function (m) {
+        if (m.darjah + '|' + m.kelas !== kelasCetak || m.status === 'Padam') return false;
+        return st.status === 'Semua' ? true : m.status === st.status;
+      }).sort(function (a, b) { return a.nama.localeCompare(b.nama); }));
+    });
     var sl = UI.$('#mSlip'); if (sl) sl.addEventListener('click', function () {
       Cetak.slip(App.DB.murid.filter(function (m) { return m.status === 'Aktif' && m.darjah + '|' + m.kelas === kelasCetak; }).sort(function (a, b) { return a.nama.localeCompare(b.nama); }));
     });
