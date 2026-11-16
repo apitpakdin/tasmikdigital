@@ -11,9 +11,14 @@
   function papar(el) {
     el.innerHTML = '<div class="tab" role="tablist">' +
       '<button role="tab" data-tab="senarai" aria-selected="' + (st.tab === 'senarai') + '">' + ikon('users') + ' Senarai murid</button>' +
-      '<button role="tab" data-tab="kumpulan" aria-selected="' + (st.tab === 'kumpulan') + '">' + ikon('layers') + ' Kumpulan bacaan</button></div><div id="muridIsi"></div>';
+      '<button role="tab" data-tab="kumpulan" aria-selected="' + (st.tab === 'kumpulan') + '">' + ikon('layers') + ' Kumpulan bacaan</button>' +
+      (App.pentadbir() ? '<button role="tab" data-tab="berganda" aria-selected="' + (st.tab === 'berganda') + '">' + ikon('users') + ' Semak berganda</button>' : '') +
+      '</div><div id="muridIsi"></div>';
     UI.$$('[data-tab]', el).forEach(function (b) { b.addEventListener('click', function () { st.tab = b.dataset.tab; papar(el); }); });
-    if (st.tab === 'kumpulan') paparKumpulan(UI.$('#muridIsi')); else paparSenarai(UI.$('#muridIsi'));
+    if (st.tab === 'berganda' && !App.pentadbir()) st.tab = 'senarai';
+    if (st.tab === 'kumpulan') paparKumpulan(UI.$('#muridIsi'));
+    else if (st.tab === 'berganda') Berganda.papar(UI.$('#muridIsi'), function () { papar(el); }, profil);
+    else paparSenarai(UI.$('#muridIsi'));
   }
 
   function senarai() {
@@ -36,7 +41,7 @@
     el.innerHTML = '<section class="kad"><div class="alat">' +
       '<div class="cari">' + ikon('search') + '<input id="mCari" type="search" placeholder="Cari nama atau kod…" value="' + esc(st.cari) + '" aria-label="Cari murid"></div>' +
       (kelas.length > 1 ? '<select id="mKelas" aria-label="Kelas"><option value="">Semua kelas</option>' + kelas.map(function (k) { return '<option value="' + esc(k) + '"' + (st.kelas === k ? ' selected' : '') + '>' + esc(App.labelKelasPenuh(k)) + '</option>'; }).join('') + '</select>' : '') +
-      ('<select id="mStatus" aria-label="Status"><option' + (st.status === 'Aktif' ? ' selected' : '') + '>Aktif</option><option value="Tamat"' + (st.status === 'Tamat' ? ' selected' : '') + '>Alumni</option><option' + (st.status === 'Pindah' ? ' selected' : '') + '>Pindah</option><option' + (st.status === 'Semua' ? ' selected' : '') + '>Semua</option></select>') +
+      ('<select id="mStatus" aria-label="Status"><option' + (st.status === 'Aktif' ? ' selected' : '') + '>Aktif</option><option value="Tamat"' + (st.status === 'Tamat' ? ' selected' : '') + '>Alumni</option><option' + (st.status === 'Pindah' ? ' selected' : '') + '>Pindah</option><option' + (st.status === 'Dikecualikan' ? ' selected' : '') + '>Dikecualikan</option><option' + (st.status === 'Semua' ? ' selected' : '') + '>Semua</option></select>') +
       '<span class="ruang"></span>' +
       (kelasCetak && bolehCetak(kelasCetak) ? '<button class="btn btn-ghost" id="mSlip">' + ikon('qr') + ' Cetak slip QR</button>' : (bolehCetak('') || App.ialah('guru') ? '<span class="lembut kecil">Pilih satu kelas untuk cetak slip QR</span>' : '')) +
       (App.pentadbir() || (App.ialah('guru') && App.kelasSaya().length) ? '<button class="btn btn-utama" id="mTambah">' + ikon('plus') + ' Tambah murid</button>' : '') +
@@ -74,11 +79,14 @@
     if (App.bolehTulis()) aksi += '<button class="btn btn-ghost" data-a="kedudukan">' + ikon('edit') + ' Betulkan kedudukan</button>';
     if (App.pentadbir()) aksi += '<button class="btn btn-ghost" data-a="edit">' + ikon('user') + ' Edit maklumat</button>';
     aksi = '<button class="btn btn-ghost" data-a="transkrip">' + ikon('file') + ' Transkrip</button>' + aksi;
+    var bolehKecuali = (App.pentadbir() || (App.ialah('guru') && App.kelasSaya().indexOf(kk) >= 0)) && (m.status === 'Aktif' || m.status === 'Dikecualikan');
+    if (bolehKecuali) aksi = (m.status === 'Aktif' ? '<button class="btn btn-ghost" data-a="kecuali">' + ikon('x') + ' Kecualikan</button>' : '<button class="btn btn-ghost" data-a="aktif">' + ikon('check') + ' Aktifkan semula</button>') + aksi;
     if (App.bolehTulis() && m.status === 'Aktif') aksi += '<a class="btn btn-utama" href="#/rekod/' + esc(id) + '" data-a="rekod">' + ikon('book') + ' Rekod tasmik</a>';
 
     var m2 = UI.modal({
       tajuk: UI.namaPendek(m.nama), besar: true,
       isi: '<div class="profil-kepala"><span class="avatar besar ' + UI.tonPeringkat(m.peringkat) + '">' + esc(UI.inisial(m.nama)) + '</span><div><h3>' + esc(m.nama) + '</h3><p class="lembut">' + esc(App.labelKelasPenuh(kk)) + ' · ' + esc(m.jenis || '') + (m.status !== 'Aktif' ? ' · ' + esc(m.status) : '') + '</p></div></div>' +
+        (m.status === 'Dikecualikan' ? '<div class="amaran-kotak">' + ikon('info') + '<div><b>Dikecualikan daripada tasmik</b><p>Murid ini tidak dipaparkan dalam senarai tasmik, laporan dan amaran (cth murid bukan Islam). Rekod lama kekal.</p></div></div>' : '') +
         (m.status === 'Pindah' ? '<div class="amaran-kotak">' + ikon('transfer') + '<div><b>Berpindah' + (m.sekolahBaharu ? ' ke ' + esc(m.sekolahBaharu) : '') + '</b><p>' + (m.tarikhPindah ? 'Tarikh: ' + esc(UI.tarikh(m.tarikhPindah, true)) + '. ' : '') + 'Cetak transkrip untuk diserahkan kepada sekolah baharu.</p></div></div>' : '') +
         '<div class="kemajuan-mini">' + UI.bar(k.pct, k.fasa === 'Al-Quran' ? 'ungu' : '') + '<span>' + esc(k.kedudukan) + ' · ' + k.pct + '% keseluruhan' + ((m.bilKhatam || 0) > 0 ? ' · Khatam ' + m.bilKhatam + 'x' : '') + '</span></div>' +
         (m.kodIbuBapa && (App.pentadbir() || bolehCetak(kk)) ? '<div class="kod-kotak"><div><small>Kod ibu bapa</small><b>' + esc(m.kodIbuBapa) + '</b></div>' +
@@ -99,6 +107,18 @@
       var a = b.dataset.a;
       if (a === 'rekod') { m2.tutup(); return; }
       if (a === 'transkrip') { m2.tutup(); Transkrip.buka(m); return; }
+      if (a === 'kecuali' || a === 'aktif') {
+        var keStatus = a === 'kecuali' ? 'Dikecualikan' : 'Aktif';
+        UI.sahkan(a === 'kecuali' ? 'Kecualikan daripada tasmik?' : 'Aktifkan semula?',
+          a === 'kecuali' ? '<b>' + esc(m.nama) + '</b> tidak akan dipaparkan lagi dalam senarai tasmik, laporan dan amaran (cth murid bukan Islam). Boleh diaktifkan semula bila-bila masa melalui penapis "Dikecualikan".'
+            : '<b>' + esc(m.nama) + '</b> akan dipaparkan semula dalam senarai tasmik.', a === 'kecuali' ? 'Kecualikan' : 'Aktifkan').then(function (ya) {
+          if (!ya) return;
+          Sync.tulis([{ op: 'update', table: 'Murid', id: m.id, patch: { status: keStatus } }], 'status murid');
+          m2.tutup(); App.bina(); papar(UI.$('#kandungan')); Shell.kiraanAmaran();
+          UI.toast(a === 'kecuali' ? UI.namaPendek(m.nama) + ' dikecualikan' : UI.namaPendek(m.nama) + ' diaktifkan semula', 'ok');
+        });
+        return;
+      }
       if (a === 'edit') { m2.tutup(); borang(m, elInduk); }
       if (a === 'kedudukan') { m2.tutup(); borangKedudukan(m, elInduk); }
       if (a === 'slip') { m2.tutup(); Cetak.slip([m]); }
@@ -160,7 +180,7 @@
         '<div class="baris-medan"><label class="medan"><span>Jenis</span><select id="fmJ">' + D.JENIS.map(function (j) { return '<option' + (m.jenis === j ? ' selected' : '') + '>' + j + '</option>'; }).join('') + '</select></label>' +
         '<label class="medan"><span>Peringkat</span><select id="fmP">' + D.PERINGKAT.map(function (p) { return '<option' + (m.peringkat === p ? ' selected' : '') + '>' + p + '</option>'; }).join('') + '</select></label>' +
         '<label class="medan"><span>M/S terakhir</span><input id="fmM" type="number" min="0" max="604" value="' + esc(m.mukaSurat || 0) + '"></label></div>' +
-        (baru ? '' : '<label class="medan"><span>Status</span><select id="fmS">' + ['Aktif', 'Pindah', 'Tamat'].map(function (s) { return '<option value="' + s + '"' + (m.status === s ? ' selected' : '') + '>' + (s === 'Tamat' ? 'Alumni (tamat Darjah 6)' : s === 'Pindah' ? 'Pindah keluar' : s) + '</option>'; }).join('') + '</select></label>' +
+        (baru ? '' : '<label class="medan"><span>Status</span><select id="fmS">' + ['Aktif', 'Pindah', 'Tamat', 'Dikecualikan'].map(function (s) { return '<option value="' + s + '"' + (m.status === s ? ' selected' : '') + '>' + (s === 'Tamat' ? 'Alumni (tamat Darjah 6)' : s === 'Pindah' ? 'Pindah keluar' : s) + '</option>'; }).join('') + '</select></label>' +
           '<div class="baris-medan" id="fmPindah"><label class="medan"><span>Tarikh pindah</span><input type="date" id="fmTP" value="' + esc(String(m.tarikhPindah || new Date().toISOString()).slice(0, 10)) + '"></label>' +
           '<label class="medan"><span>Sekolah baharu (jika diketahui)</span><input id="fmSB" maxlength="120" value="' + esc(m.sekolahBaharu || '') + '"></label></div>') +
         '<p class="ralat-borang" id="fmRalat" hidden></p></form>',

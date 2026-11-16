@@ -11,7 +11,7 @@
 var TasmikCore = (function () {
   'use strict';
 
-  var VERSI = '3.2.1';
+  var VERSI = '3.3.0';
 
   /* ── Skema jadual: [kunci, tajuk lajur dalam Sheet] ──
      Tajuk lajur kekal sama seperti versi lama (SKDK) supaya
@@ -432,7 +432,7 @@ var TasmikCore = (function () {
       // 3) Naik kelas / alumni
       var kini = iso(), naik = 0, tamat = 0, kemas = {};
       murid.forEach(function (m) {
-        if (m.status !== 'Aktif') return;
+        if (m.status !== 'Aktif' && m.status !== 'Dikecualikan') return;   // murid dikecualikan juga naik darjah
         var d = parseInt(String(m.darjah || '').replace(/\D/g, ''), 10) || 0;
         if (d === 6) { kemas[m.id] = { status: 'Tamat', tarikhKemaskini: kini }; tamat++; }
         else if (d >= 1 && d <= 5) {
@@ -475,6 +475,73 @@ var TasmikCore = (function () {
       env.store.setConfig('tahunSemasa', String(tahun));
       log('Tukar Tahun', user.nama, naik + ' naik, ' + tamat + ' alumni, ' + rows.length + ' Tahun 1, ' + Object.keys(gk).length + ' guru, tahun ' + tahun + (sandaran ? ', sandaran ' + sandaran.nama : ''));
       return { ok: true, naik: naik, tamat: tamat, baru: rows.length, guru: Object.keys(gk).length, kumpulan: Object.keys(kp).length, sandaran: sandaran };
+    }
+
+    /* ── GABUNG MURID BERGANDA ──
+       b.simpanId : murid yang dikekalkan
+       b.buangIds : murid berganda — rekod tasmik/khatam/KBS dipindah ke simpanId,
+                    kemudian ditanda 'Padam' (tidak dipadam dari Sheet)       */
+    function apiGabungMurid(user, b) {
+      perlu(user, PENTADBIR);
+      var murid = env.store.all('Murid');
+      var simpan = murid.filter(function (m) { return m.id === b.simpanId; })[0];
+      var buangIds = (b.buangIds || []).filter(function (id) { return id && id !== b.simpanId; });
+      if (!simpan) return { ok: false, msg: 'Murid yang dikekalkan tidak dijumpai.' };
+      if (!buangIds.length) return { ok: false, msg: 'Tiada murid untuk digabung.' };
+      var buang = murid.filter(function (m) { return buangIds.indexOf(m.id) >= 0; });
+      if (buang.length !== buangIds.length) return { ok: false, msg: 'Sebahagian murid tidak dijumpai.' };
+      var kini = iso();
+
+      // Kedudukan bacaan: ambil yang paling jauh
+      var PO = ['Iqra 1', 'Iqra 2', 'Iqra 3', 'Iqra 4', 'Iqra 5', 'Iqra 6', 'Al-Quran', 'Khatam'];
+      var jauh = [simpan].concat(buang).reduce(function (a, m) {
+        var ia = PO.indexOf(a.peringkat), im = PO.indexOf(m.peringkat);
+        if (im > ia || (im === ia && (parseInt(m.mukaSurat, 10) || 0) > (parseInt(a.mukaSurat, 10) || 0))) return m;
+        return a;
+      }, simpan);
+
+      // Rekod & khatam
+      var pr = {}, pk = {}, nRekod = 0, nKhatam = 0;
+      env.store.all('Rekod').forEach(function (r) { if (buangIds.indexOf(r.muridId) >= 0) { pr[r.id] = { muridId: simpan.id, muridNama: simpan.nama }; nRekod++; } });
+      env.store.updateMany('Rekod', pr);
+      var khatamSemua = env.store.all('Khatam');
+      khatamSemua.forEach(function (k) { if (buangIds.indexOf(k.muridId) >= 0) { pk[k.id] = { muridId: simpan.id, muridNama: simpan.nama }; nKhatam++; } });
+      env.store.updateMany('Khatam', pk);
+
+      // KBS: pindah, tetapi jika item yang sama sudah ada pada murid dikekalkan, kekalkan yang terkini
+      var kbs = env.store.all('KBS'), ada = {}, pkbs = {}, kbsBuang = [];
+      kbs.forEach(function (r) { if (r.muridId === simpan.id) ada[r.tahun + '|' + r.itemId] = r; });
+      kbs.filter(function (r) { return buangIds.indexOf(r.muridId) >= 0; })
+        .sort(function (a, c) { return new Date(c.tarikh) - new Date(a.tarikh); })
+        .forEach(function (r) {
+          var key = r.tahun + '|' + r.itemId, sedia = ada[key];
+          if (!sedia) { pkbs[r.id] = { muridId: simpan.id, muridNama: simpan.nama }; ada[key] = r; }
+          else if (new Date(r.tarikh) > new Date(sedia.tarikh) && pkbs[sedia.id] === undefined) {
+            kbsBuang.push(sedia.id); pkbs[r.id] = { muridId: simpan.id, muridNama: simpan.nama }; ada[key] = r;
+          } else kbsBuang.push(r.id);
+        });
+      env.store.updateMany('KBS', pkbs);
+      kbsBuang.forEach(function (id) { env.store.remove('KBS', id); });
+
+      // Kumpulan bacaan: ganti ID
+      var pkp = {};
+      env.store.all('Kumpulan').forEach(function (k) {
+        var ids = String(k.muridIds || '').split(',').filter(Boolean), ubah = false;
+        ids = ids.map(function (id) { if (buangIds.indexOf(id) >= 0) { ubah = true; return simpan.id; } return id; });
+        if (ubah) pkp[k.id] = { muridIds: ids.filter(function (id, i) { return ids.indexOf(id) === i; }).join(',') };
+      });
+      env.store.updateMany('Kumpulan', pkp);
+
+      // Murid dikekalkan & murid berganda
+      var bilKhatam = 0;
+      env.store.all('Khatam').forEach(function (k) { if (k.muridId === simpan.id) bilKhatam = Math.max(bilKhatam, parseInt(k.bilangan, 10) || 0); });
+      var kemas = {};
+      kemas[simpan.id] = { jenis: jauh.jenis, peringkat: jauh.peringkat, iqraLabel: jauh.iqraLabel, mukaSurat: jauh.mukaSurat,
+        bilKhatam: Math.max(bilKhatam, parseInt(simpan.bilKhatam, 10) || 0), status: 'Aktif', tarikhKemaskini: kini };
+      buang.forEach(function (m) { kemas[m.id] = { status: 'Padam', tarikhKemaskini: kini, ditambahOleh: String(m.ditambahOleh || '') + ' [digabung ke ' + simpan.id + ']' }; });
+      env.store.updateMany('Murid', kemas);
+      log('Gabung murid', user.nama, simpan.nama + ' ← ' + buang.map(function (m) { return m.id; }).join(', ') + ' (' + nRekod + ' rekod, ' + nKhatam + ' khatam)');
+      return { ok: true, rekod: nRekod, khatam: nKhatam, kbs: Object.keys(pkbs).length };
     }
 
     /* Sandaran manual (Super Admin) */
@@ -529,7 +596,7 @@ var TasmikCore = (function () {
         case 'Kumpulan':
           return PENTADBIR.indexOf(p) >= 0 || op === 'insert' || (lama && lama.guruId === user.id);
         case 'Murid':
-          if (PENTADBIR.indexOf(p) >= 0) return op !== 'delete';
+          if (PENTADBIR.indexOf(p) >= 0) return true;   // padam = status 'Padam' (data kekal dalam Sheet)
           if (op === 'insert') {
             // Guru: tambah murid (cth pindah masuk) ke kelas sendiri sahaja
             for (var f in baru) if (MURID_MEDAN_TAMBAH_GURU.indexOf(f) < 0) return false;
@@ -537,6 +604,13 @@ var TasmikCore = (function () {
             return (user.senaraiKelas || []).some(function (k) { return k.darjah === baru.darjah && k.kelas === baru.kelas; });
           }
           if (op !== 'update') return false;
+          // Guru boleh kecualikan / aktifkan semula murid kelas sendiri (cth murid bukan Islam)
+          if ('status' in baru) {
+            for (var f2 in baru) if (f2 !== 'status' && f2 !== 'tarikhKemaskini') return false;
+            if (['Aktif', 'Dikecualikan'].indexOf(baru.status) < 0) return false;
+            if (!lama || ['Aktif', 'Dikecualikan'].indexOf(lama.status) < 0) return false;
+            return (user.senaraiKelas || []).some(function (k) { return k.darjah === normalDarjah(lama.darjah) && k.kelas === normalKelas(lama.kelas); });
+          }
           for (var k in baru) if (MURID_MEDAN_GURU.indexOf(k) < 0) return false;
           return true;
         case 'Guru':
@@ -673,6 +747,7 @@ var TasmikCore = (function () {
           case 'janaKod': return env.kunci(function () { return apiJanaKod(user, body); });
           case 'tukarTahun': return env.kunci(function () { return apiTukarTahun(user, body); });
           case 'sandaran': return env.kunci(function () { return apiSandaran(user); });
+          case 'gabungMurid': return env.kunci(function () { return apiGabungMurid(user, body); });
           case 'batch': return env.kunci(function () { return apiBatch(user, body); });
         }
         return { ok: false, msg: 'Tindakan tidak dikenali.' };
