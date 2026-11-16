@@ -7,17 +7,50 @@ var Berganda = (function () {
   var esc = UI.esc, ikon = UI.ikon;
 
   /* "Siti Sumaiyyah binti Ahmad" → "SITISUMAIA" */
-  function kunci(nama) {
-    var up = ' ' + String(nama || '').toUpperCase().replace(/[^A-Z\s\/]/g, ' ').replace(/\s+/g, ' ') + ' ';
-    var diberi = up.split(/\s(?:BINTI|BIN|BINTE|BT|BTE|B|A\/L|A\/P)\s/)[0];
-    return diberi.replace(/[^A-Z]/g, '').replace(/Y/g, 'I').replace(/(.)\1+/g, '$1').replace(/H$/, '');
+  /* Ejaan fonetik nama Melayu: variasi ejaan biasa dianggap sama.
+     MUHD/MOHD/MUHAMMAD → MHD · AISHAH/AISYAH → AISA · SUMAYYAH/SUMAIYAH → SUMAIA */
+  var GANTI_PERKATAAN = [
+    [/^(MUHAMMAD|MUHAMAD|MOHAMMAD|MOHAMAD|MOHAMMED|MOHAMED|MUHAMMED|MUHAMED|MOHD|MUHD|MOHAMD|MD|MHD|MOHAMMAD)$/, 'MHD'],
+    [/^(ABDUL|ABD|ABDOL|AB)$/, 'ABD'],
+    [/^(NOOR|NOR|NUR|NOORUL|NURUL|NORUL)$/, 'NUR'],
+    [/^(SITI|STI|SITTI)$/, 'SITI'],
+    [/^(AHMAD|AHMED|AHMD)$/, 'AHMAD']
+  ];
+  function fonetik(teks) {
+    return String(teks || '').split(' ').filter(Boolean).map(function (w) {
+      for (var i = 0; i < GANTI_PERKATAAN.length; i++) if (GANTI_PERKATAAN[i][0].test(w)) return GANTI_PERKATAAN[i][1];
+      return w.replace(/SY|SH/g, 'S').replace(/KH/g, 'K').replace(/TH/g, 'T').replace(/DZ|DH/g, 'Z').replace(/GH/g, 'G')
+        .replace(/Q/g, 'K').replace(/OO/g, 'U').replace(/EE/g, 'I').replace(/Y/g, 'I').replace(/(.)\1+/g, '$1').replace(/H$/, '');
+    }).join(' ');
   }
-
-  /* Nama bapa (selepas BIN/BINTI), dinormalkan; '' jika tiada */
-  function kunciBapa(nama) {
+  function pecah(nama) {
     var up = ' ' + String(nama || '').toUpperCase().replace(/[^A-Z\s\/]/g, ' ').replace(/\s+/g, ' ') + ' ';
     var p = up.split(/\s(?:BINTI|BIN|BINTE|BT|BTE|B|A\/L|A\/P)\s/);
-    return p.length > 1 ? p.slice(1).join('').replace(/[^A-Z]/g, '').replace(/Y/g, 'I').replace(/(.)\1+/g, '$1') : '';
+    return { diberi: fonetik(p[0]), bapa: p.length > 1 ? fonetik(p.slice(1).join(' ')) : '' };
+  }
+  function kunci(nama) { return pecah(nama).diberi.replace(/\s/g, ''); }
+  function kunciBapa(nama) { return pecah(nama).bapa.replace(/\s/g, ''); }
+
+  /* Kesamaan 0–1 (Levenshtein) */
+  function sama(a, b) {
+    if (a === b) return 1;
+    if (!a || !b) return 0;
+    var m = a.length, n = b.length, d = [], i, j;
+    for (i = 0; i <= m; i++) d[i] = [i];
+    for (j = 0; j <= n; j++) d[0][j] = j;
+    for (i = 1; i <= m; i++) for (j = 1; j <= n; j++)
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1));
+    return 1 - d[m][n] / Math.max(m, n);
+  }
+  /* Dua murid dianggap mungkin berganda jika nama diberi hampir sama dan
+     nama bapa (jika kedua-duanya ada) juga hampir sama. */
+  function mungkinSama(x, y) {
+    var a = x.k, b = y.k;
+    var pendek = a.length < b.length ? a : b, panjang = a.length < b.length ? b : a;
+    var diberiSama = a === b || sama(a, b) >= 0.85 || (pendek.length >= 8 && panjang.indexOf(pendek) === 0);
+    if (!diberiSama) return false;
+    if (x.b && y.b) return sama(x.b, y.b) >= 0.8;
+    return true;
   }
 
   function cariKumpulan() {
@@ -32,10 +65,7 @@ var Berganda = (function () {
       var list = ikut[d], induk = list.map(function (_, i) { return i; });
       function akar(i) { while (induk[i] !== i) i = induk[i] = induk[induk[i]]; return i; }
       for (var i = 0; i < list.length; i++) for (var j = i + 1; j < list.length; j++) {
-        if (list[i].b && list[j].b && list[i].b !== list[j].b) continue;   // nama bapa berbeza → murid berbeza
-        var a = list[i].k, b = list[j].k;
-        var pendek = a.length < b.length ? a : b, panjang = a.length < b.length ? b : a;
-        if (a === b || (pendek.length >= 8 && panjang.indexOf(pendek) === 0)) induk[akar(i)] = akar(j);
+        if (mungkinSama(list[i], list[j])) induk[akar(i)] = akar(j);
       }
       var g = {};
       list.forEach(function (x, i) { (g[akar(i)] = g[akar(i)] || []).push(x.m); });
@@ -103,5 +133,5 @@ var Berganda = (function () {
     });
   }
 
-  return { papar: papar, kunci: kunci, kunciBapa: kunciBapa, cariKumpulan: cariKumpulan };
+  return { papar: papar, kunci: kunci, kunciBapa: kunciBapa, sama: sama, mungkinSama: mungkinSama, cariKumpulan: cariKumpulan };
 })();
