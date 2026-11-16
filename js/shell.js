@@ -299,6 +299,7 @@ var Shell = (function () {
       if (UI.$('#tkBaru', m).value !== UI.$('#tkUlang', m).value) { r.hidden = false; r.textContent = 'Kata laluan baharu tidak sepadan.'; return; }
       API.panggil('changePass', { oldPass: UI.$('#tkLama', m).value, newPass: UI.$('#tkBaru', m).value }).then(function (x) {
         if (!x.ok) { r.hidden = false; r.textContent = x.msg; return; }
+        API.gantiToken(x.token);
         App.user.tukarKata = false; API.kemasPengguna(App.user);
         m.tutup(); UI.toast('Kata laluan disimpan', 'ok');
       });

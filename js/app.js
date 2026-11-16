@@ -1,8 +1,8 @@
 /* ================================================================
    APLIKASI — keadaan, peranan, skop data, navigasi
    ================================================================ */
-var APP_VERSI = '3.3.3';
-var BACKEND_MIN = '3.0.0';
+var APP_VERSI = '3.4.0';
+var BACKEND_MIN = '3.4.0';
 
 var App = (function () {
   var DB = kosongDB();

@@ -21,12 +21,14 @@
     if (App.pentadbir()) {
       html += '<section class="kad"><div class="kad-kepala"><h2>' + ikon('school') + ' Tetapan sekolah</h2></div><div class="kad-badan">' +
         '<form id="fSekolah" class="borang">' +
-        '<div class="logo-tetapan">' + Shell.logoHTML(c.logo, c.namaSekolah, 'besar') + '<div><label class="btn btn-ghost btn-kecil">' + ikon('upload') + ' Muat naik logo<input type="file" id="tLogo" accept="image/*" hidden></label>' +
-        (c.logo ? ' <button type="button" class="btn btn-teks btn-kecil" id="tLogoBuang">Buang</button>' : '') + '<p class="lembut kecil">PNG/JPG, akan dikecilkan secara automatik.</p></div></div>' +
+        '<div class="logo-tetapan" id="logoSekolah">' + Shell.logoHTML(c.logo, c.namaSekolah, 'besar') + '<div><b>Logo sekolah</b><p class="lembut kecil">Dicetak pada kop laporan, transkrip dan slip QR. Disimpan dalam Google Sheet sekolah — tidak perlu ubah GitHub.</p>' +
+        '<label class="btn btn-ghost btn-kecil">' + ikon('upload') + ' ' + (c.logo ? 'Tukar logo' : 'Muat naik logo') + '<input type="file" id="tLogo" accept="image/png,image/jpeg,image/webp" hidden></label>' +
+        (c.logo ? ' <button type="button" class="btn btn-teks btn-kecil" id="tLogoBuang">Buang</button>' : '') + '<p class="lembut kecil">PNG (latar lut sinar) paling cantik. Dikecilkan secara automatik.</p></div></div>' +
         '<label class="medan"><span>Nama sekolah</span><input id="tNama" maxlength="100" value="' + esc(c.namaSekolah || '') + '"></label>' +
         '<label class="medan"><span>Alamat (untuk kop laporan)</span><input id="tAlamat" maxlength="200" value="' + esc(c.alamat || '') + '"></label>' +
-        '<div class="baris-medan"><label class="medan"><span>Nama Guru Besar (tandatangan laporan)</span><input id="tGB" maxlength="100" value="' + esc(c.namaGB || '') + '"></label>' +
-        '<label class="medan"><span>Amaran jika tiada rekod selepas</span><select id="tHari">' + [3, 5, 7, 10, 14].map(function (n) { return '<option value="' + n + '"' + (String(c.alertDays || '7') === String(n) ? ' selected' : '') + '>' + n + ' hari</option>'; }).join('') + '</select></label></div>' +
+        '<div class="baris-medan"><label class="medan"><span>Nama Guru Besar</span><input id="tGB" maxlength="100" value="' + esc(c.namaGB || '') + '" placeholder="cth: HJ. ZULKIFLI BIN OMAR"></label>' +
+        '<label class="medan"><span>Jawatan (dicetak di bawah nama)</span><input id="tJawatanGB" maxlength="100" value="' + esc(c.jawatanGB || '') + '" placeholder="Guru Besar"></label></div>' +
+        '<div class="baris-medan"><label class="medan"><span>Amaran jika tiada rekod selepas</span><select id="tHari">' + [3, 5, 7, 10, 14].map(function (n) { return '<option value="' + n + '"' + (String(c.alertDays || '7') === String(n) ? ' selected' : '') + '>' + n + ' hari</option>'; }).join('') + '</select></label></div>' +
         '<label class="medan"><span>Nama-nama kelas (pisahkan dengan koma)</span><input id="tKelas" maxlength="300" value="' + esc(c.senaraiKelas || App.namaKelasSekolah().join(', ')) + '" placeholder="cth: Bestari, Cerdas, Jauhari"></label>' +
         '<label class="togol"><input type="checkbox" id="tKBS"' + (c.modulKBS !== 'FALSE' ? ' checked' : '') + '><span></span>Modul Kem Bestari Solat</label>' +
         '<details class="lanjutan"><summary>Lanjutan: julat muka surat Iqra</summary>' + editorIqra() + '</details>' +
@@ -51,7 +53,8 @@
       e.preventDefault();
       API.panggil('changePass', { oldPass: UI.$('#kLama').value, newPass: UI.$('#kBaru').value }).then(function (r) {
         if (!r.ok) return UI.toast(r.rangkaian ? 'Perlukan internet' : r.msg, 'err');
-        UI.toast('Kata laluan ditukar', 'ok'); UI.$('#fKata').reset();
+        API.gantiToken(r.token);
+        UI.toast('Kata laluan ditukar. Peranti lain telah dilog keluar.', 'ok', 5000); UI.$('#fKata').reset();
       });
     });
     UI.$$('[data-tema]').forEach(function (b) { b.addEventListener('click', function () { Shell.setTema(b.dataset.tema); papar(el); }); });
@@ -70,12 +73,15 @@
     var logoBaru = null;
     UI.$('#tLogo').addEventListener('change', function () {
       var f = this.files[0]; if (!f) return;
-      kecilkan(f, 160).then(function (url) { logoBaru = url; UI.$('.logo-tetapan .logo').outerHTML = '<img class="logo besar" src="' + url + '" alt="">'; UI.toast('Logo sedia — tekan Simpan', 'ok'); });
+      kecilkan(f).then(function (url) {
+        logoBaru = url; UI.$('.logo-tetapan .logo').outerHTML = '<img class="logo besar" src="' + url + '" alt="">';
+        UI.toast('Logo sedia — tekan "Simpan tetapan sekolah"', 'ok', 5000);
+      }, function () { UI.toast('Fail gambar tidak dapat dibaca', 'err'); });
     });
     var lb = UI.$('#tLogoBuang'); if (lb) lb.addEventListener('click', function () { logoBaru = ''; UI.toast('Logo akan dibuang selepas Simpan'); });
     fs.addEventListener('submit', function (e) {
       e.preventDefault();
-      var v = { namaSekolah: UI.$('#tNama').value.trim(), alamat: UI.$('#tAlamat').value.trim(), namaGB: UI.$('#tGB').value.trim(),
+      var v = { namaSekolah: UI.$('#tNama').value.trim(), alamat: UI.$('#tAlamat').value.trim(), namaGB: UI.$('#tGB').value.trim(), jawatanGB: UI.$('#tJawatanGB').value.trim(),
         alertDays: UI.$('#tHari').value, modulKBS: UI.$('#tKBS').checked ? 'TRUE' : 'FALSE', senaraiKelas: UI.$('#tKelas').value.split(',').map(function (s) { return UI.tajukNama(s.trim()); }).filter(Boolean).join(', ') };
       if (logoBaru !== null) v.logo = logoBaru;
       var iq = bacaIqra(); if (iq === false) return;
@@ -108,15 +114,25 @@
     return ubah ? { baru: JSON.stringify(baru), lama: JSON.stringify(lama) } : { baru: '', lama: '' };
   }
 
-  function kecilkan(fail, maks) {
+  /* Logo untuk cetakan: cuba PNG 280px (tajam), kecilkan berperingkat sehingga muat
+     dalam satu sel Google Sheet (~40 KB). JPEG diberi latar putih (bukan hitam). */
+  function kecilkan(fail) {
     return new Promise(function (ok, gagal) {
       var img = new Image();
       img.onload = function () {
-        var s = Math.min(1, maks / Math.max(img.width, img.height));
-        var cv = document.createElement('canvas'); cv.width = Math.round(img.width * s); cv.height = Math.round(img.height * s);
-        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
-        var url = cv.toDataURL('image/png');
-        if (url.length > 40000) url = cv.toDataURL('image/jpeg', 0.85);
+        function lukis(maks, latarPutih) {
+          var s = Math.min(1, maks / Math.max(img.width, img.height));
+          var cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round(img.width * s)); cv.height = Math.max(1, Math.round(img.height * s));
+          var cx = cv.getContext('2d');
+          if (latarPutih) { cx.fillStyle = '#ffffff'; cx.fillRect(0, 0, cv.width, cv.height); }
+          cx.imageSmoothingQuality = 'high';
+          cx.drawImage(img, 0, 0, cv.width, cv.height);
+          return cv;
+        }
+        var HAD = 40000, url = '';
+        [280, 220, 180, 140].some(function (m) { url = lukis(m).toDataURL('image/png'); return url.length <= HAD; });
+        if (url.length > HAD) [280, 220, 160].some(function (m) { url = lukis(m, true).toDataURL('image/jpeg', 0.88); return url.length <= HAD; });
+        if (url.length > HAD) return gagal(new Error('terlalu besar'));
         ok(url);
       };
       img.onerror = gagal;

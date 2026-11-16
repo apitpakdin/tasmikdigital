@@ -11,7 +11,7 @@
 var TasmikCore = (function () {
   'use strict';
 
-  var VERSI = '3.3.0';
+  var VERSI = '3.4.0';
 
   /* ── Skema jadual: [kunci, tajuk lajur dalam Sheet] ──
      Tajuk lajur kekal sama seperti versi lama (SKDK) supaya
@@ -68,11 +68,11 @@ var TasmikCore = (function () {
   /* Kunci tetapan sekolah & siapa boleh ubah */
   var CONFIG_KUNCI = {
     namaSekolah: PENTADBIR, kodSekolah: ['superadmin'], alamat: PENTADBIR, logo: PENTADBIR,
-    namaGB: PENTADBIR, modulKBS: PENTADBIR, alertDays: PENTADBIR, iqraBaru: PENTADBIR,
+    namaGB: PENTADBIR, jawatanGB: PENTADBIR, modulKBS: PENTADBIR, alertDays: PENTADBIR, iqraBaru: PENTADBIR,
     iqraLama: PENTADBIR, senaraiKelas: PENTADBIR, tahunSemasa: ['superadmin']
   };
 
-  var SESI_HARI = 30;          // tempoh sesi "ingat saya"
+  var SESI_HARI = 3650;        // "ingat saya": kekal sehingga log keluar / log masuk akaun lain / kata laluan ditukar
   var SESI_HARI_PENDEK = 1;    // tanpa "ingat saya"
   var CUBAAN_MAKS = 5;         // cubaan log masuk gagal sebelum dikunci
   var KUNCI_MINIT = 10;
@@ -251,7 +251,16 @@ var TasmikCore = (function () {
       if (s.tamat < Date.now()) { env.sesi.del(token); return null; }
       var g = env.store.all('Guru').filter(function (x) { return x.id === s.uid; })[0];
       if (!g || g.status === 'Tamat') { env.sesi.del(token); return null; }
+      // Sesi terikat pada kata laluan: reset / tukar kata laluan membatalkan semua sesi lama
+      if (s.kp && s.kp !== capKata(g.password)) { env.sesi.del(token); return null; }
       return profil(g);
+    }
+    function capKata(hash) { return sha('sesi|' + String(hash || '')).slice(0, 16); }
+    function ciptaSesi(g, ingat) {
+      var token = rawak(40);
+      var hari = ingat ? SESI_HARI : SESI_HARI_PENDEK;
+      env.sesi.put(token, { uid: g.id, tamat: Date.now() + hari * 864e5, kp: capKata(g.password), ingat: !!ingat }, hari);
+      return token;
     }
 
     function perlu(user, senarai) {
@@ -286,9 +295,8 @@ var TasmikCore = (function () {
       env.cache.remove(kunciCache);
       if (hasil.naikTaraf) env.store.update('Guru', g.id, { password: hashKata(pw, rawak(16)) });
 
-      var token = rawak(40);
-      var hari = b.ingat ? SESI_HARI : SESI_HARI_PENDEK;
-      env.sesi.put(token, { uid: g.id, tamat: Date.now() + hari * 864e5 }, hari);
+      if (hasil.naikTaraf) g = env.store.all('Guru').filter(function (x) { return x.id === g.id; })[0];
+      var token = ciptaSesi(g, b.ingat);
       log('Log masuk', g.nama, g.peranan);
       return { ok: true, token: token, user: profil(g) };
     }
@@ -331,9 +339,14 @@ var TasmikCore = (function () {
       if (baru.length < 6) return { ok: false, msg: 'Kata laluan baharu minimum 6 aksara.' };
       var g = env.store.all('Guru').filter(function (x) { return x.id === user.id; })[0];
       if (!semakKata(String(b.oldPass || ''), g.password).ok) return { ok: false, msg: 'Kata laluan semasa tidak betul.' };
-      env.store.update('Guru', g.id, { password: hashKata(baru, rawak(16)), tukarKata: 'FALSE' });
+      var hashBaru = hashKata(baru, rawak(16));
+      env.store.update('Guru', g.id, { password: hashBaru, tukarKata: 'FALSE' });
+      // Semua peranti lain log keluar; peranti ini terima sesi baharu
+      var lama = b.token ? env.sesi.get(b.token) : null;
+      if (b.token) env.sesi.del(b.token);
+      g.password = hashBaru;
       log('Tukar kata laluan', g.nama, '');
-      return { ok: true, msg: 'Kata laluan berjaya ditukar.' };
+      return { ok: true, msg: 'Kata laluan berjaya ditukar.', token: ciptaSesi(g, lama ? lama.ingat !== false : true) };
     }
 
     function apiResetPass(user, b) {

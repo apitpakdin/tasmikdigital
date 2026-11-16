@@ -33,7 +33,7 @@ var Cetak = (function () {
       (o.rows.length ? o.rows.map(function (r) { return '<tr>' + r.map(function (v) { return '<td>' + esc(v) + '</td>'; }).join('') + '</tr>'; }).join('') : '<tr><td colspan="' + o.headers.length + '">Tiada data</td></tr>') +
       '</tbody></table>' +
       '<div class="tandatangan"><div><p>Disediakan oleh:</p><span class="garis"></span><b>' + esc(App.user.nama) + '</b><small>' + esc(App.NAMA_PERANAN[App.user.peranan]) + '</small></div>' +
-      '<div><p>Disahkan oleh:</p><span class="garis"></span><b>' + esc(c.namaGB || '') + '</b><small>Guru Besar</small></div></div>' +
+      '<div><p>Disahkan oleh:</p><span class="garis"></span><b>' + esc(c.namaGB || '') + '</b><small>' + esc(c.jawatanGB || 'Guru Besar') + '</small><small>' + esc(c.namaSekolah || '') + '</small><small>Tarikh: ' + esc(UI.tarikh(new Date().toISOString(), true)) + '</small></div></div>' +
       '<footer class="kaki-cetak">Dijana melalui Tasmik Digital pada ' + esc(UI.tarikh(new Date().toISOString(), true) + ', ' + UI.masa(new Date().toISOString())) + '</footer></div>';
     cetakSekarang(el);
   }

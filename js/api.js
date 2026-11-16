@@ -91,13 +91,19 @@ var API = (function () {
     s.user = user;
     if (baca('sesi')) tulis('sesi', s); else tulis('sesi', s, sessionStorage);
   }
+  /* Selepas tukar kata laluan pelayan memberi token baharu (sesi lama dibatalkan) */
+  function gantiToken(token) {
+    var s = sesiSemasa(); if (!s || !token) return;
+    s.token = token;
+    if (baca('sesi')) tulis('sesi', s); else tulis('sesi', s, sessionStorage);
+  }
   function padamSesi() { buang('sesi'); }
 
   return {
     get sekolah() { return sekolah; },
     get dalamTalian() { return dalamTalian || (sekolah && sekolah.demo); },
     muatSenarai: muatSenarai, pilihSekolah: pilihSekolah, sekolahDisimpan: sekolahDisimpan, lupakanSekolah: lupakanSekolah,
-    panggil: panggil, sesiSemasa: sesiSemasa, simpanSesi: simpanSesi, kemasPengguna: kemasPengguna, padamSesi: padamSesi,
+    panggil: panggil, sesiSemasa: sesiSemasa, simpanSesi: simpanSesi, kemasPengguna: kemasPengguna, gantiToken: gantiToken, padamSesi: padamSesi,
     baca: baca, tulis: tulis, buang: buang, onUbah: onUbah, maklum: maklum, setTalian: setTalian
   };
 })();

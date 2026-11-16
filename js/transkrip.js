@@ -35,22 +35,45 @@ var Transkrip = (function () {
         '<ul class="senarai-nota">' +
         '<li><b>Bacaan:</b> ' + esc(k.kedudukan) + ' (' + k.pct + '%) · ' + d.rekod.length + ' sesi tasmik' + (d.khatam.length ? ' · khatam ' + d.khatam.length + 'x' : '') + '</li>' +
         (App.modulKBS() ? '<li><b>Bestari Solat:</b> ' + (d.kbs.length ? d.kbs.filter(function (x) { return x.status === 'M'; }).length + ' item dikuasai direkodkan' : 'tiada rekod') + '</li>' : '') + '</ul>' +
-        (!c.namaGB ? '<div class="amaran-kotak">' + ikon('alert') + '<div><b>Nama Guru Besar belum ditetapkan</b><p>' + (App.pentadbir() ? 'Isi di Tetapan → Tetapan sekolah supaya tercetak pada transkrip.' : 'Minta penyelaras mengisinya di Tetapan. Ruang nama akan dibiarkan kosong.') + '</p></div></div>' : '') +
-        '<form class="borang"><label class="medan"><span>Ulasan guru (pilihan — dicetak pada transkrip)</span><textarea id="trUlasan" rows="3" maxlength="500" placeholder="cth: Murid lancar membaca, perlu bimbingan tajwid mad."></textarea></label>' +
+        amaranSediaan(c) +
+        '<form class="borang"><label class="medan"><span>Tarikh transkrip</span><input type="date" id="trTarikh" value="' + tarikhTempatan(new Date()) + '" required></label>' +
+        '<label class="medan"><span>Ulasan guru (pilihan — dicetak pada transkrip)</span><textarea id="trUlasan" rows="3" maxlength="500" placeholder="cth: Murid lancar membaca, perlu bimbingan tajwid mad."></textarea></label>' +
         (m.status === 'Pindah' ? '' : '<p class="lembut kecil">' + ikon('info') + ' Murid ini belum ditanda "Pindah". Transkrip tetap boleh dicetak sebagai rekod semasa.</p>') + '</form>',
       kaki: '<button class="btn btn-ghost" data-tutup>Batal</button><button class="btn btn-utama" id="trCetak">' + ikon('printer') + ' Cetak / Simpan PDF</button>'
     });
+    var ke = UI.$('[data-ke-tetapan]', md);
+    if (ke) ke.addEventListener('click', function () { md.tutup(); App.pergi('tetapan'); setTimeout(function () { var l = UI.$('#logoSekolah'); if (l) l.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300); });
     UI.$('#trCetak', md).addEventListener('click', function () {
       var ulasan = UI.$('#trUlasan', md).value.trim();
+      var t = UI.$('#trTarikh', md).value;
       md.tutup();
-      cetak(m, ulasan);
+      cetak(m, ulasan, t ? new Date(t + 'T12:00:00') : new Date());
     });
   }
 
-  function cetak(m, ulasan) {
+  function tarikhTempatan(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  /* Amaran jika logo / nama GB / jawatan belum diisi */
+  function amaranSediaan(c) {
+    var tiada = [];
+    if (!c.logo) tiada.push('logo sekolah');
+    if (!c.namaGB) tiada.push('nama Guru Besar');
+    if (!c.alamat) tiada.push('alamat sekolah');
+    if (!tiada.length) return '';
+    return '<div class="amaran-kotak">' + ikon('alert') + '<div><b>Belum ditetapkan: ' + esc(tiada.join(', ')) + '</b><p>' +
+      (App.pentadbir() ? 'Transkrip rasmi patut mempunyai maklumat ini. <button type="button" class="pautan" data-ke-tetapan>' + ikon('settings') + ' Isi di Tetapan sekolah</button>'
+        : 'Minta penyelaras mengisinya di Tetapan → Tetapan sekolah. Ruang berkaitan akan dibiarkan kosong.') + '</p></div></div>';
+  }
+
+  function cetak(m, ulasan, tarikhDok) {
     var d = data(m), c = App.DB.config, kini = new Date();
+    tarikhDok = tarikhDok || kini;
+    var tarikhTeks = UI.tarikh(tarikhDok.toISOString(), true);
+    var jawatan = c.jawatanGB || 'Guru Besar';
     var k = D.kemajuan(m);
-    var tahun = kini.getFullYear();
+    var tahun = tarikhDok.getFullYear();
     var rujukan = 'TD/' + (API.sekolah.kod || '') + '/' + tahun + '/' + String(m.id).slice(-6).toUpperCase();
     var jum = d.rekod.reduce(function (s, r) { return s + (parseInt(r.jumlah, 10) || 0); }, 0);
     var kualiti = {}; D.KUALITI.forEach(function (q) { kualiti[q.label] = 0; });
@@ -60,7 +83,7 @@ var Transkrip = (function () {
 
     var html = '<div class="halaman-cetak transkrip">' + Cetak.kop() +
       '<h2 class="tajuk-laporan">Transkrip Pencapaian Bacaan Al-Quran dan Amali Solat</h2>' +
-      '<p class="sub-laporan">No. Rujukan: ' + esc(rujukan) + '</p>' +
+      '<p class="sub-laporan">No. Rujukan: ' + esc(rujukan) + ' &nbsp;·&nbsp; Tarikh: ' + esc(tarikhTeks) + '</p>' +
 
       '<table class="jadual-butiran"><tbody>' +
       baris('Nama murid', m.nama) +
@@ -94,8 +117,8 @@ var Transkrip = (function () {
       '<div class="blok-akhir"><h3 class="bahagian-cetak">' + (App.modulKBS() ? 'Bahagian C' : 'Bahagian B') + ' — Ulasan Guru</h3>' +
       '<div class="kotak-ulasan">' + (ulasan ? esc(ulasan) : '&nbsp;') + '</div>' +
 
-      '<div class="tandatangan tiga"><div><p>Disediakan oleh:</p><span class="garis"></span><b>' + esc(App.user.nama) + '</b><small>' + esc(App.NAMA_PERANAN[App.user.peranan]) + '</small><small>Tarikh: ' + esc(UI.tarikh(kini.toISOString(), true)) + '</small></div>' +
-      '<div><p>Disahkan oleh:</p><span class="garis"></span><b>' + (c.namaGB ? esc(c.namaGB) : '(................................................)') + '</b><small>Guru Besar</small><small>' + esc(c.namaSekolah || '') + '</small></div>' +
+      '<div class="tandatangan tiga"><div><p>Disediakan oleh:</p><span class="garis"></span><b>' + esc(App.user.nama) + '</b><small>' + esc(App.NAMA_PERANAN[App.user.peranan]) + '</small><small>' + esc(c.namaSekolah || '') + '</small><small>Tarikh: ' + esc(tarikhTeks) + '</small></div>' +
+      '<div><p>Disahkan oleh:</p><span class="garis"></span><b>' + (c.namaGB ? esc(c.namaGB) : '(................................................)') + '</b><small>' + esc(jawatan) + '</small><small>' + esc(c.namaSekolah || '') + '</small><small>Tarikh: ' + esc(tarikhTeks) + '</small></div>' +
       '<div class="cop"><span>Cop rasmi sekolah</span></div></div></div>' +
       '<footer class="kaki-cetak">Transkrip ini dijana melalui sistem Tasmik Digital pada ' + esc(UI.tarikh(kini.toISOString(), true) + ', ' + UI.masa(kini.toISOString())) + ' · No. Rujukan ' + esc(rujukan) + '. Sah dengan tandatangan dan cop Guru Besar.</footer>' +
       '</div>';
