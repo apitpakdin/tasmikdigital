@@ -171,7 +171,7 @@
     if (fs) fs.addEventListener('change', togolPindah); togolPindah();
     UI.$('#fmSimpan', md).addEventListener('click', function () {
       var nama = UI.$('#fmNama', md).value.trim().toUpperCase().replace(/\s+/g, ' ');
-      var dk = guruSahaja ? UI.$('#fmDK', md).value.split('|') : [UI.$('#fmD', md).value, UI.tajukNama(UI.$('#fmK', md).value.trim())];
+      var dk = guruSahaja ? UI.$('#fmDK', md).value.split('|') : [UI.$('#fmD', md).value, TasmikCore.normalKelas(UI.$('#fmK', md).value)];
       var row = { nama: nama, darjah: dk[0], kelas: dk[1], jenis: UI.$('#fmJ', md).value, peringkat: UI.$('#fmP', md).value, mukaSurat: parseInt(UI.$('#fmM', md).value, 10) || 0 };
       if (row.peringkat === 'Al-Quran' || row.peringkat === 'Khatam') row.jenis = 'Al-Quran';
       row.iqraLabel = D.labelBacaan(row.jenis, row.peringkat, row.mukaSurat || 1, row.mukaSurat || 1);

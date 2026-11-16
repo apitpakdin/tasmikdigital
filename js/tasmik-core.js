@@ -11,7 +11,7 @@
 var TasmikCore = (function () {
   'use strict';
 
-  var VERSI = '3.2.0';
+  var VERSI = '3.2.1';
 
   /* ── Skema jadual: [kunci, tajuk lajur dalam Sheet] ──
      Tajuk lajur kekal sama seperti versi lama (SKDK) supaya
@@ -80,6 +80,30 @@ var TasmikCore = (function () {
   var TAMBAH_MAKS_GURU = 3;        // guru boleh tambah maks 3 murid (pindah masuk) setiap kali
   /* Medan yang guru boleh isi semasa menambah murid ke kelas sendiri */
   var MURID_MEDAN_TAMBAH_GURU = ['nama', 'no', 'darjah', 'kelas', 'jenis', 'peringkat', 'iqraLabel', 'mukaSurat', 'status', 'tarikhDaftar'];
+
+  /* ── Penyeragaman darjah & kelas ──
+     "4 JAUHARI", "jauhari", "Darjah 4 Jauhari", " Jauhari " → "Jauhari"  */
+  function normalKelas(k) {
+    var s = String(k === undefined || k === null ? '' : k).replace(/\s+/g, ' ').trim();
+    var t = s.replace(/^(darjah|tahun)?\s*[1-6](\s+|\s*[-\/.]\s*)/i, '');
+    if (t && t !== s) s = t;
+    return s.toLowerCase().replace(/(^|[\s\-'(])(\S)/g, function (m, a, b) { return a + b.toUpperCase(); });
+  }
+  function normalDarjah(d) {
+    var s = String(d === undefined || d === null ? '' : d).trim();
+    var n = s.replace(/\D/g, '');
+    return /^[1-6]$/.test(n) ? 'Darjah ' + n : s;
+  }
+  function normalKelasList(l) {
+    var lihat = {}, out = [];
+    String(l || '').split(';').forEach(function (p) {
+      var b = p.split('|');
+      if (!b[0] || !b[1]) return;
+      var x = normalDarjah(b[0]) + '|' + normalKelas(b[1]);
+      if (!lihat[x]) { lihat[x] = 1; out.push(x); }
+    });
+    return out.join(';');
+  }
 
   /* ── SHA-256 tulen JS (digunakan jika adapter tiada versi pantas) ── */
   function sha256Hex(ascii) {
@@ -184,6 +208,9 @@ var TasmikCore = (function () {
         if (v === null || v === undefined) v = '';
         if (NOMBOR[k]) { v = v === '' ? '' : (parseInt(v, 10) || 0); }
         else { v = String(v).slice(0, k === 'muridIds' ? 20000 : 1000).trim(); }
+        if (k === 'kelas' && v) v = normalKelas(v);
+        else if (k === 'darjah' && v) v = normalDarjah(v);
+        else if (k === 'kelasList') v = normalKelasList(v);
         out[k] = v;
       }
       return out;
@@ -200,9 +227,9 @@ var TasmikCore = (function () {
       var list = [];
       String(g.kelasList || '').split(';').forEach(function (p) {
         var bh = p.split('|');
-        if (bh[0] && bh[1]) list.push({ darjah: bh[0].trim(), kelas: bh[1].trim() });
+        if (bh[0] && bh[1]) list.push({ darjah: normalDarjah(bh[0]), kelas: normalKelas(bh[1]) });
       });
-      if (!list.length && g.darjah && g.kelas) list.push({ darjah: g.darjah, kelas: g.kelas });
+      if (!list.length && g.darjah && g.kelas) list.push({ darjah: normalDarjah(g.darjah), kelas: normalKelas(g.kelas) });
       return list;
     }
 
@@ -290,7 +317,14 @@ var TasmikCore = (function () {
       return { ok: true, data: data, user: user, versi: VERSI, masaServer: iso() };
     }
 
-    function bersihObj(o) { var r = {}; for (var k in o) if (k.charAt(0) !== '_') r[k] = o[k]; return r; }
+    function bersihObj(o) {
+      var r = {};
+      for (var k in o) if (k.charAt(0) !== '_') r[k] = o[k];
+      // Seragamkan data lama yang ditaip tidak konsisten (cth "4 JAUHARI")
+      if (r.kelas) r.kelas = normalKelas(r.kelas);
+      if (r.darjah) r.darjah = normalDarjah(r.darjah);
+      return r;
+    }
 
     function apiChangePass(user, b) {
       var baru = String(b.newPass || '');
@@ -367,7 +401,7 @@ var TasmikCore = (function () {
       // 1) Semak dahulu — tiada apa diubah jika ada ralat
       var murid = env.store.all('Murid');
       var guru = env.store.all('Guru');
-      var semakKelas = function (k) { return String(k || '').trim().slice(0, 40); };
+      var semakKelas = function (k) { return normalKelas(String(k || '').slice(0, 40)); };
       for (var key in peta) {
         if (!/^Darjah [1-5]\|.+$/.test(key)) throw ralat('INPUT', 'Peta kelas tidak sah: ' + key);
         if (!semakKelas(peta[key])) throw ralat('INPUT', 'Nama kelas baharu kosong untuk ' + key.replace('|', ' '));
@@ -462,7 +496,7 @@ var TasmikCore = (function () {
         .sort(function (a, b2) { return new Date(b2.tarikh) - new Date(a.tarikh); });
       var akhir = rekod[0];
       var guru = env.store.all('Guru').filter(function (g) {
-        return g.status !== 'Tamat' && g.peranan === 'guru' && senaraiKelasGuru(g).some(function (k) { return k.darjah === m.darjah && k.kelas === m.kelas; });
+        return g.status !== 'Tamat' && g.peranan === 'guru' && senaraiKelasGuru(g).some(function (k) { return k.darjah === normalDarjah(m.darjah) && k.kelas === normalKelas(m.kelas); });
       }).map(function (g) { return g.nama; });
       var c = env.store.config();
       return {
@@ -544,7 +578,7 @@ var TasmikCore = (function () {
             var nm = String(row.nama || '').toUpperCase().replace(/\s+/g, ' ');
             if (nm.length < 3) throw ralat('INPUT', 'Nama murid tidak sah.');
             row.nama = nm;
-            var ganda = semua('Murid').filter(function (m) { return m.status === 'Aktif' && String(m.nama).toUpperCase() === nm && m.darjah === row.darjah && m.kelas === row.kelas; })[0];
+            var ganda = semua('Murid').filter(function (m) { return m.status === 'Aktif' && String(m.nama).toUpperCase().replace(/\s+/g, ' ').trim() === nm && normalDarjah(m.darjah) === row.darjah && normalKelas(m.kelas) === row.kelas; })[0];
             if (ganda) throw ralat('INPUT', nm + ' sudah wujud dalam ' + row.darjah + ' ' + row.kelas + '.');
           }
         } else if (o.op === 'update' || o.op === 'delete') {
@@ -656,7 +690,7 @@ var TasmikCore = (function () {
   }
 
   return {
-    VERSI: VERSI, SKEMA: SKEMA, NOMBOR: NOMBOR, PERANAN: PERANAN, CONFIG_KUNCI: CONFIG_KUNCI,
+    VERSI: VERSI, SKEMA: SKEMA, normalKelas: normalKelas, normalDarjah: normalDarjah, normalKelasList: normalKelasList, NOMBOR: NOMBOR, PERANAN: PERANAN, CONFIG_KUNCI: CONFIG_KUNCI,
     cipta: cipta, sha256Hex: sha256Hex, hashLama: hashLama
   };
 })();

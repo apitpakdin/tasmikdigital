@@ -130,7 +130,7 @@
     UI.$('#wzFail').addEventListener('change', function () { if (this.files[0]) bacaTemplat(this.files[0], el); });
     UI.$('#wzTambah').addEventListener('click', function () {
       simpanGuru(isi);
-      var kelas = UI.tajukNama(UI.$('#wzTampalKelas').value.trim());
+      var kelas = TasmikCore.normalKelas(UI.$('#wzTampalKelas').value.trim());
       if (!kelas) return UI.toast('Pilih kelas', 'err');
       var n = 0;
       UI.$('#wzTampal').value.split(/\r?\n/).forEach(function (x) { if (tambahMurid(x, kelas)) n++; });
@@ -154,7 +154,7 @@
       s = s.trim(); if (!s) return;
       var m = s.match(/^(?:darjah|tahun|d)?\s*([1-6])\s+(.+)$/i);
       if (!m) { sah = false; return; }
-      var k = 'Darjah ' + m[1] + '|' + UI.tajukNama(m[2].trim());
+      var k = 'Darjah ' + m[1] + '|' + TasmikCore.normalKelas(m[2].trim());
       if (out.indexOf(k) < 0) out.push(k);
     });
     return sah ? out : null;
@@ -251,7 +251,7 @@
           var h = function (n) { var ws = wb.Sheets[n]; return ws ? XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }) : null; };
           var mr = h('Murid Tahun 1');
           if (mr) mr.slice(1).forEach(function (r, i) {
-            var nama = String(r[1] || '').trim(), kelas = UI.tajukNama(String(r[2] || '').trim());
+            var nama = String(r[1] || '').trim(), kelas = TasmikCore.normalKelas(String(r[2] || '').trim());
             if (!nama) return;
             if (!kelas) { hasil.ralat.push('Murid baris ' + (i + 2) + ': kelas kosong'); return; }
             if (tambahMurid(nama, kelas)) hasil.murid++;

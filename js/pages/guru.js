@@ -56,7 +56,7 @@
       var kls = UI.$$('#gKelasWrap input[type=checkbox]:checked', md).map(function (c) { return c.value; });
       UI.$('#gKelasLain', md).value.split(',').forEach(function (s) {
         var m = s.trim().match(/^(?:darjah|tahun)?\s*(\d)\s+(.+)$/i);
-        if (m) kls.push('Darjah ' + m[1] + '|' + UI.tajukNama(m[2].trim()));
+        if (m) kls.push('Darjah ' + m[1] + '|' + TasmikCore.normalKelas(m[2].trim()));
       });
       kls = kls.filter(function (k, i) { return kls.indexOf(k) === i; });
       var p = UI.$('#gP', md).value;

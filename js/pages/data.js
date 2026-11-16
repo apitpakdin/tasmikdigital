@@ -98,7 +98,7 @@
         if (lama && kl.length <= 2) kl = ({ J: 'Jauhari', B: 'Bestari', C: 'Cerdas', A: 'Amanah', M: 'Mulia', I: 'Ikhlas', T: 'Taqwa', K: 'Kurniaan', N: 'Nilam', D: 'Dedikasi', S: 'Setia' })[kl.toUpperCase()] || kl;
         var jenis = col.jenis >= 0 ? String(row[col.jenis]).trim() : '';
         var per = col.peringkat >= 0 ? String(row[col.peringkat]).trim() : '';
-        out.push({ nama: nama, darjah: dj ? 'Darjah ' + dj : '', kelas: UI.tajukNama(kl), jenis: D.JENIS.indexOf(jenis) >= 0 ? jenis : 'Iqra Baru', peringkat: D.PERINGKAT.indexOf(per) >= 0 ? per : 'Iqra 1', mukaSurat: col.ms >= 0 ? parseInt(row[col.ms], 10) || 0 : 0 });
+        out.push({ nama: nama, darjah: dj ? 'Darjah ' + dj : '', kelas: TasmikCore.normalKelas(kl), jenis: D.JENIS.indexOf(jenis) >= 0 ? jenis : 'Iqra Baru', peringkat: D.PERINGKAT.indexOf(per) >= 0 ? per : 'Iqra 1', mukaSurat: col.ms >= 0 ? parseInt(row[col.ms], 10) || 0 : 0 });
       }
     });
     var sedia = {};
