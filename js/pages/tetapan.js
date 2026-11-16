@@ -25,7 +25,7 @@
         '<label class="btn btn-ghost btn-kecil">' + ikon('upload') + ' ' + (c.logo ? 'Tukar logo' : 'Muat naik logo') + '<input type="file" id="tLogo" accept="image/png,image/jpeg,image/webp" hidden></label>' +
         (c.logo ? ' <button type="button" class="btn btn-teks btn-kecil" id="tLogoBuang">Buang</button>' : '') + '<p class="lembut kecil">PNG (latar lut sinar) paling cantik. Dikecilkan secara automatik.</p></div></div>' +
         '<label class="medan"><span>Nama sekolah</span><input id="tNama" maxlength="100" value="' + esc(c.namaSekolah || '') + '"></label>' +
-        '<label class="medan"><span>Alamat (untuk kop laporan)</span><input id="tAlamat" maxlength="200" value="' + esc(c.alamat || '') + '"></label>' +
+        '<label class="medan"><span>Alamat (untuk kop rasmi — setiap baris dicetak pada baris sendiri)</span><textarea id="tAlamat" rows="3" maxlength="300" placeholder="JALAN RAJA PEREMPUAN TAAYAH&#10;33007 KUALA KANGSAR&#10;PERAK">' + esc(c.alamat || '') + '</textarea></label>' +
         '<div class="baris-medan"><label class="medan"><span>Nama Guru Besar</span><input id="tGB" maxlength="100" value="' + esc(c.namaGB || '') + '" placeholder="cth: HJ. ZULKIFLI BIN OMAR"></label>' +
         '<label class="medan"><span>Jawatan (dicetak di bawah nama)</span><input id="tJawatanGB" maxlength="100" value="' + esc(c.jawatanGB || '') + '" placeholder="Guru Besar"></label></div>' +
         '<div class="baris-medan"><label class="medan"><span>Amaran jika tiada rekod selepas</span><select id="tHari">' + [3, 5, 7, 10, 14].map(function (n) { return '<option value="' + n + '"' + (String(c.alertDays || '7') === String(n) ? ' selected' : '') + '>' + n + ' hari</option>'; }).join('') + '</select></label></div>' +
@@ -81,7 +81,7 @@
     var lb = UI.$('#tLogoBuang'); if (lb) lb.addEventListener('click', function () { logoBaru = ''; UI.toast('Logo akan dibuang selepas Simpan'); });
     fs.addEventListener('submit', function (e) {
       e.preventDefault();
-      var v = { namaSekolah: UI.$('#tNama').value.trim(), alamat: UI.$('#tAlamat').value.trim(), namaGB: UI.$('#tGB').value.trim(), jawatanGB: UI.$('#tJawatanGB').value.trim(),
+      var v = { namaSekolah: UI.$('#tNama').value.trim(), alamat: UI.$('#tAlamat').value.split(/\r?\n/).map(function (b) { return b.trim(); }).filter(Boolean).join('\n'), namaGB: UI.$('#tGB').value.trim(), jawatanGB: UI.$('#tJawatanGB').value.trim(),
         alertDays: UI.$('#tHari').value, modulKBS: UI.$('#tKBS').checked ? 'TRUE' : 'FALSE', senaraiKelas: UI.$('#tKelas').value.split(',').map(function (s) { return UI.tajukNama(s.trim()); }).filter(Boolean).join(', ') };
       if (logoBaru !== null) v.logo = logoBaru;
       var iq = bacaIqra(); if (iq === false) return;

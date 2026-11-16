@@ -545,9 +545,10 @@ body.ada-modal { overflow: hidden; }
   body.mod-cetak #cetak { display: block; }
   .halaman-cetak { font-size: 10.5pt; color: #000; }
   .kop { display: flex; align-items: center; gap: 14px; border-bottom: 2.5px solid #0b5d4b; padding-bottom: 10px; margin-bottom: 14px; }
-  .kop .logo { width: 60px; height: 60px; }
+  .kop .logo { width: 72px; height: 72px; object-fit: contain; }
   .kop h1 { font-size: 15pt; }
-  .kop p { font-size: 9.5pt; color: #333; }
+  .kop p { font-size: 9pt; color: #222; margin: 0; line-height: 1.35; letter-spacing: .02em; }
+  .kop h1 { letter-spacing: .02em; margin-bottom: 2px; }
   .tajuk-laporan { text-align: center; font-size: 13pt; text-transform: uppercase; letter-spacing: .03em; }
   .sub-laporan { text-align: center; color: #333; margin: 2px 0 12px; font-size: 10pt; }
   .jadual-cetak { width: 100%; border-collapse: collapse; font-size: 9pt; }
@@ -662,3 +663,5 @@ body.ada-modal { overflow: hidden; }
 .tp-murid textarea { width: 100%; border-radius: 10px; border: 1px solid var(--garis-kuat); background: var(--permukaan); padding: 8px 10px; font-size: .92rem; resize: vertical; }
 .tp-frasa .cip { min-height: 30px; padding: 4px 10px; font-size: .78rem; }
 .tp-frasa [data-cadang] { background: var(--emas-lembut); border-color: var(--emas); }
+
+#tAlamat { min-height: 84px; resize: vertical; text-transform: uppercase; }

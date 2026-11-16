@@ -14,8 +14,11 @@ var Cetak = (function () {
   function kop() {
     var c = App.DB.config;
     // Hanya logo sebenar dicetak — tiada huruf ganti jika logo belum dimuat naik
+    // Nama & alamat dalam HURUF BESAR; setiap baris alamat (dari Tetapan) dicetak pada baris sendiri
+    var alamat = String(c.alamat || '').split(/\r?\n/).map(function (b) { return b.trim(); }).filter(Boolean);
     return '<header class="kop">' + (c.logo ? '<img class="logo" src="' + esc(c.logo) + '" alt="">' : '') +
-      '<div><h1>' + esc(c.namaSekolah || API.sekolah.nama) + '</h1>' + (c.alamat ? '<p>' + esc(c.alamat) + '</p>' : '') + '</div></header>';
+      '<div><h1>' + esc(String(c.namaSekolah || API.sekolah.nama).toUpperCase()) + '</h1>' +
+      alamat.map(function (b) { return '<p>' + esc(b.toUpperCase()) + '</p>'; }).join('') + '</div></header>';
   }
   /* Margin halaman ditetapkan 0 supaya pelayar TIDAK mencetak header/footer
      (alamat laman, tarikh, nombor halaman). Ruang tepi dibuat semula di sini:
