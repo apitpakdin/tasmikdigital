@@ -15,6 +15,12 @@ var Transkrip = (function () {
     return { rekod: rekod, khatam: khatam, kbs: kbs, guru: guru, penyedia: calonPenyedia(m, rekod) };
   }
 
+  /* "Darjah 6" → "Guru Pendidikan Islam Tahun 6" */
+  function jawatanGPI(darjah) {
+    var n = String(darjah || '').replace(/\D/g, '');
+    return 'Guru Pendidikan Islam' + (n ? ' Tahun ' + n : '');
+  }
+
   /* Calon "Disediakan oleh": guru kelas murid dahulu, kemudian guru yang pernah
      mentasmik murid ini, akhir sekali pengguna yang sedang log masuk. */
   function calonPenyedia(m, rekod) {
@@ -24,11 +30,11 @@ var Transkrip = (function () {
       return g.status === 'Aktif' && (g.peranan === 'guru' || g.peranan === 'penyelaras') &&
         (g.senaraiKelas || []).some(function (k) { return k.darjah === m.darjah && k.kelas === m.kelas; });
     }).sort(function (a, b) { return (bil[b.id] || 0) - (bil[a.id] || 0); }).forEach(function (g) {
-      ada[g.id] = 1; out.push({ id: g.id, nama: g.nama, jawatan: 'Guru Kelas ' + App.labelKelas(m.darjah + '|' + m.kelas) });
+      ada[g.id] = 1; out.push({ id: g.id, nama: g.nama, jawatan: jawatanGPI(m.darjah) });
     });
     Object.keys(bil).sort(function (a, b) { return bil[b] - bil[a]; }).forEach(function (id) {
       var g = App.DB.guru.filter(function (x) { return x.id === id && x.status === 'Aktif' && x.peranan !== 'superadmin'; })[0];
-      if (g && !ada[g.id]) { ada[g.id] = 1; out.push({ id: g.id, nama: g.nama, jawatan: 'Guru Tasmik' }); }
+      if (g && !ada[g.id]) { ada[g.id] = 1; out.push({ id: g.id, nama: g.nama, jawatan: 'Guru Pendidikan Islam' }); }
     });
     if (!ada[App.user.id]) out.push({ id: App.user.id, nama: App.user.nama, jawatan: App.NAMA_PERANAN[App.user.peranan] });
     // Lalai: pengguna semasa jika dia guru kelas/tasmik murid ini, jika tidak guru kelas pertama
