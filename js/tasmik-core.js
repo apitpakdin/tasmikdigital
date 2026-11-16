@@ -11,7 +11,7 @@
 var TasmikCore = (function () {
   'use strict';
 
-  var VERSI = '3.4.1';
+  var VERSI = '3.4.2';
 
   /* ── Skema jadual: [kunci, tajuk lajur dalam Sheet] ──
      Tajuk lajur kekal sama seperti versi lama (SKDK) supaya
@@ -105,39 +105,50 @@ var TasmikCore = (function () {
     return out.join(';');
   }
 
-  /* ── Pembetulan peringkat Al-Quran ──
-     Data lama: Jenis = "Al-Quran" tetapi Peringkat = "Iqra 1" (medan tersembunyi
-     dalam borang lama). Juga murid yang ada sesi tasmik Al-Quran tetapi
-     peringkatnya Iqra. Kembalikan { id: patch } untuk murid yang perlu dibetulkan. */
+  /* ── Semakan peringkat Iqra / Al-Quran ──
+     Sistem lama: pilihan jenis bacaan dalam borang rekod TIDAK ditetapkan semula
+     antara murid, jadi ramai murid Iqra tersimpan dengan Jenis "Al-Quran" atau
+     sesi bertanda Al-Quran. Data ini TIDAK boleh dipercayai bulat-bulat.
+       • pasti : dibetulkan automatik — hanya bila muka surat > 130 (melebihi
+                 semua buku Iqra, jadi mesti Al-Quran)
+       • semak : guru kelas perlu sahkan (tab Murid → Semak peringkat)       */
+  var IQRA_MS_MAKS = 130;
   function ialahQuran(x) {
-    return x && (x.jenis === 'Al-Quran' || x.peringkat === 'Al-Quran' || /^Al-Quran/i.test(String(x.iqraLabel || '')));
+    return !!x && (x.jenis === 'Al-Quran' || x.peringkat === 'Al-Quran' || /^Al-Quran/i.test(String(x.iqraLabel || '')));
   }
-  function betulkanPeringkat(murid, rekod) {
-    var akhirQuran = {};
-    (rekod || []).forEach(function (r) {
-      if (!ialahQuran(r) || !r.muridId) return;
-      var a = akhirQuran[r.muridId];
-      if (!a || new Date(r.tarikh) > new Date(a.tarikh)) akhirQuran[r.muridId] = r;
-    });
-    var patch = {};
+  function labelJuzuk(ms) { ms = parseInt(ms, 10) || 1; return 'Al-Quran (Juzuk ' + (ms <= 1 ? 1 : Math.min(30, Math.floor((ms - 1) / 20) + 1)) + ')'; }
+  function semakPeringkat(murid, rekod) {
+    var ikut = {};
+    (rekod || []).forEach(function (r) { if (r.muridId) (ikut[r.muridId] = ikut[r.muridId] || []).push(r); });
+    var pasti = {}, semak = {};
     (murid || []).forEach(function (m) {
-      if (m.peringkat === 'Khatam' || m.peringkat === 'Al-Quran') {
-        if (m.peringkat === 'Al-Quran' && m.jenis !== 'Al-Quran') patch[m.id] = { jenis: 'Al-Quran' };
+      var p = String(m.peringkat || '').trim();
+      if (p === 'Khatam') return;
+      if (p === 'Al-Quran') { if (m.jenis !== 'Al-Quran') pasti[m.id] = { jenis: 'Al-Quran' }; return; }
+      var rs = (ikut[m.id] || []).slice().sort(function (a, b) { return new Date(a.tarikh) - new Date(b.tarikh); });
+      var akhir = rs[rs.length - 1];
+      var ms = parseInt(m.mukaSurat, 10) || 0;
+      var quranMurid = ialahQuran(m);
+      var akhirQuran = akhir && ialahQuran(akhir) ? akhir : null;
+      var keAkhir = akhirQuran ? parseInt(akhirQuran.ke, 10) || 0 : 0;
+      // Pasti Al-Quran: muka surat melebihi semua buku Iqra
+      if ((quranMurid && ms > IQRA_MS_MAKS) || keAkhir > IQRA_MS_MAKS) {
+        var msBaru = Math.max(quranMurid ? ms : 0, keAkhir);
+        pasti[m.id] = { jenis: 'Al-Quran', peringkat: 'Al-Quran', mukaSurat: msBaru, iqraLabel: labelJuzuk(msBaru) };
         return;
       }
-      var r = akhirQuran[m.id];
-      if (ialahQuran(m) || r) {
-        var p = { jenis: 'Al-Quran', peringkat: 'Al-Quran' };
-        if (r && (parseInt(r.ke, 10) || 0) > 0) {
-          var ms = parseInt(r.ke, 10);
-          if (!ialahQuran(m) || (parseInt(m.mukaSurat, 10) || 0) < ms) p.mukaSurat = ms;
-        }
-        var akhir = p.mukaSurat || parseInt(m.mukaSurat, 10) || 1;
-        p.iqraLabel = 'Al-Quran (Juzuk ' + (akhir <= 1 ? 1 : Math.min(30, Math.floor((akhir - 1) / 20) + 1)) + ')';
-        patch[m.id] = p;
-      }
+      var sebab = '';
+      if (quranMurid) sebab = 'Jenis bacaan tercatat "Al-Quran" tetapi peringkat ' + (p ? '"' + p + '"' : 'kosong');
+      else if (!p) sebab = 'Peringkat bacaan kosong';
+      else if (akhirQuran && (!m.tarikhKemaskini || new Date(akhirQuran.tarikh) > new Date(m.tarikhKemaskini)))
+        sebab = 'Sesi tasmik terakhir bertanda Al-Quran tetapi peringkat "' + p + '"';
+      if (!sebab) return;
+      semak[m.id] = {
+        sebab: sebab,
+        bukti: rs.slice(-3).reverse().map(function (r) { return { tarikh: r.tarikh, label: r.iqraLabel || r.peringkat || r.jenis || '', dari: r.dari, ke: r.ke, guru: r.guru || '' }; })
+      };
     });
-    return patch;
+    return { pasti: pasti, semak: semak };
   }
 
   /* ── SHA-256 tulen JS (digunakan jika adapter tiada versi pantas) ── */
@@ -351,10 +362,12 @@ var TasmikCore = (function () {
         kumpulan: env.store.all('Kumpulan').map(bersihObj),
         config: c
       };
-      // Paparkan peringkat sebenar (cth murid Al-Quran yang tersimpan sebagai "Iqra 1")
-      var betul = betulkanPeringkat(data.murid, data.rekod);
-      data.murid.forEach(function (m) { if (betul[m.id]) for (var k in betul[m.id]) m[k] = betul[m.id][k]; });
-      data.rekod.forEach(function (r) { if (ialahQuran(r) && r.peringkat !== 'Al-Quran') { r.peringkat = 'Al-Quran'; r.jenis = 'Al-Quran'; } });
+      // Peringkat: betulkan kes PASTI sahaja; kes lain ditanda untuk semakan guru
+      var sp = semakPeringkat(data.murid, data.rekod);
+      data.murid.forEach(function (m) {
+        if (sp.pasti[m.id]) for (var k in sp.pasti[m.id]) m[k] = sp.pasti[m.id][k];
+        if (sp.semak[m.id]) m.semakPeringkat = sp.semak[m.id];
+      });
       // Guru biasa tidak perlu nampak kod ibu bapa murid kelas lain — tetap dihantar
       // kerana guru boleh cetak slip kelas sendiri; tapis di sini:
       if (user.peranan === 'guru') {
@@ -817,7 +830,7 @@ var TasmikCore = (function () {
   }
 
   return {
-    VERSI: VERSI, SKEMA: SKEMA, betulkanPeringkat: betulkanPeringkat, normalKelas: normalKelas, normalDarjah: normalDarjah, normalKelasList: normalKelasList, NOMBOR: NOMBOR, PERANAN: PERANAN, CONFIG_KUNCI: CONFIG_KUNCI,
+    VERSI: VERSI, SKEMA: SKEMA, semakPeringkat: semakPeringkat, normalKelas: normalKelas, normalDarjah: normalDarjah, normalKelasList: normalKelasList, NOMBOR: NOMBOR, PERANAN: PERANAN, CONFIG_KUNCI: CONFIG_KUNCI,
     cipta: cipta, sha256Hex: sha256Hex, hashLama: hashLama
   };
 })();

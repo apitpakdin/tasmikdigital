@@ -9,15 +9,19 @@
   }
 
   function papar(el) {
+    if (window.__tabMurid) { st.tab = window.__tabMurid; window.__tabMurid = ''; }
     el.innerHTML = '<div class="tab" role="tablist">' +
       '<button role="tab" data-tab="senarai" aria-selected="' + (st.tab === 'senarai') + '">' + ikon('users') + ' Senarai murid</button>' +
       '<button role="tab" data-tab="kumpulan" aria-selected="' + (st.tab === 'kumpulan') + '">' + ikon('layers') + ' Kumpulan bacaan</button>' +
       (App.pentadbir() ? '<button role="tab" data-tab="berganda" aria-selected="' + (st.tab === 'berganda') + '">' + ikon('users') + ' Semak berganda</button>' : '') +
+      (App.bolehTulis() ? '<button role="tab" data-tab="peringkat" aria-selected="' + (st.tab === 'peringkat') + '">' + ikon('alert') + ' Semak peringkat' +
+        (SemakPeringkat.bilangan() ? ' <b class="kiraan">' + SemakPeringkat.bilangan() + '</b>' : '') + '</button>' : '') +
       '</div><div id="muridIsi"></div>';
     UI.$$('[data-tab]', el).forEach(function (b) { b.addEventListener('click', function () { st.tab = b.dataset.tab; papar(el); }); });
     if (st.tab === 'berganda' && !App.pentadbir()) st.tab = 'senarai';
     if (st.tab === 'kumpulan') paparKumpulan(UI.$('#muridIsi'));
     else if (st.tab === 'berganda') Berganda.papar(UI.$('#muridIsi'), function () { papar(el); }, profil);
+    else if (st.tab === 'peringkat' && App.bolehTulis()) SemakPeringkat.papar(UI.$('#muridIsi'), function () { papar(el); });
     else paparSenarai(UI.$('#muridIsi'));
   }
 

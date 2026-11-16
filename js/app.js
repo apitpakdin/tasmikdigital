@@ -1,7 +1,7 @@
 /* ================================================================
    APLIKASI — keadaan, peranan, skop data, navigasi
    ================================================================ */
-var APP_VERSI = '3.4.2';
+var APP_VERSI = '3.4.3';
 var BACKEND_MIN = '3.4.0';
 
 var App = (function () {

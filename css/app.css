@@ -633,3 +633,10 @@ body.ada-modal { overflow: hidden; }
 .khatam-rekod { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .84rem; }
 .khatam-rekod > span { display: inline-flex; align-items: center; gap: 6px; }
 .khatam-kelas { scroll-margin-top: 80px; }
+
+.amaran-kotak.warn { background: var(--warn-lembut); }
+.amaran-kotak.warn > .ikon { color: var(--warn); }
+
+.semak-p-pilih { display: grid; gap: 10px; grid-template-columns: minmax(260px, 1.4fr) 1fr 1fr auto; align-items: end; }
+@media (max-width: 899px) { .semak-p-pilih { grid-template-columns: 1fr; } }
+.tab .kiraan { margin-left: 4px; }

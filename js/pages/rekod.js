@@ -96,8 +96,9 @@
           '<a class="btn btn-ghost" href="#/khatam">Rekod khatam</a>');
       return;
     }
-    // Murid berjenis Al-Quran SENTIASA dibuka sebagai Al-Quran (data lama mungkin tersimpan "Iqra 1")
-    var quran = m.peringkat === 'Al-Quran' || m.jenis === 'Al-Quran' || /^Al-Quran/i.test(String(m.iqraLabel || ''));
+    // Peringkat dari pelayan sudah disemak: hanya "Al-Quran" yang sah dibuka sebagai Al-Quran.
+    // Data bercanggah (m.semakPeringkat) → guru diminta pilih jenis bacaan yang betul.
+    var quran = m.peringkat === 'Al-Quran';
     var f = { jenis: quran ? 'Al-Quran' : (m.jenis === 'Iqra Lama' ? 'Iqra Lama' : 'Iqra Baru'), peringkat: quran ? 'Al-Quran' : (D.IQRA_SAHAJA.indexOf(m.peringkat) >= 0 ? m.peringkat : 'Iqra 1'), kualiti: D.KUALITI[0].v, kemaskini: true, naik: false };
     var akhir = App.rekodAkhir(m.id);
     var kj = D.kemajuan(m);
@@ -106,6 +107,8 @@
       '<div class="kad-kepala murid-kepala"><span class="avatar ' + UI.tonPeringkat(m.peringkat) + '">' + esc(UI.inisial(m.nama)) + '</span>' +
       '<div><h2>' + esc(UI.namaPendek(m.nama)) + '</h2><p class="lembut">' + esc(App.labelKelasPenuh(m.darjah + '|' + m.kelas)) + (akhir ? ' · Terakhir ' + esc(UI.relatif(akhir.tarikh).toLowerCase()) + ' (m/s ' + esc(akhir.dari + '–' + akhir.ke) + ', ' + esc(D.kualiti(akhir.kualiti).label) + ')' : ' · Belum ada rekod') + '</p></div></div>' +
       '<div class="kemajuan-mini">' + UI.bar(kj.pct, kj.fasa === 'Al-Quran' ? 'ungu' : '') + '<span>' + esc(kj.kedudukan) + ' · ' + kj.pct + '%</span></div>' +
+      (m.semakPeringkat ? '<div class="amaran-kotak warn" id="rkSemak">' + UI.ikon('alert') + '<div><b>Sahkan jenis bacaan murid ini</b><p>' + esc(m.semakPeringkat.sebab) +
+        ' (data sistem lama). Pilih <b>Iqra</b> atau <b>Al-Quran</b> di bawah mengikut bacaan sebenar — kedudukan murid akan dikemas kini bila rekod disimpan.</p></div></div>' : '') +
       '<form id="fRekod" class="borang">' +
       '<div class="segmen" role="radiogroup" aria-label="Jenis bacaan">' + D.JENIS.map(function (j) {
         return '<button type="button" role="radio" data-jenis="' + j + '" aria-checked="' + (f.jenis === j) + '">' + esc(j) + '</button>';

@@ -38,6 +38,10 @@
       (App.bolehTulis() ? '<a class="btn btn-emas btn-besar" href="#/rekod">' + ikon('plus') + ' Rekod tasmik</a>' : '') +
       '</section>';
 
+    var nSemak = App.bolehTulis() && window.SemakPeringkat ? SemakPeringkat.bilangan() : 0;
+    if (nSemak) html += '<div class="amaran-kotak warn">' + ikon('alert') + '<div><b>' + nSemak + ' murid perlu pengesahan peringkat bacaan</b>' +
+      '<p>Data dari sistem lama bercanggah (cth jenis "Al-Quran" tetapi peringkat Iqra). <button class="pautan" id="keSemakP">Semak sekarang ' + ikon('chevR') + '</button></p></div></div>';
+
     html += '<section class="kpi">' +
       kpi('users', murid.length, 'Murid aktif', '') +
       kpi('book', hariIni.length, 'Tasmik hari ini', new Set(hariIni.map(function (r) { return r.muridId; })).size + ' murid') +
@@ -102,6 +106,8 @@
     }).join('') + '</ul>' : UI.kosong('book', 'Belum ada rekod', 'Rekod tasmik pertama akan dipaparkan di sini.'));
 
     el.innerHTML = html;
+    var ks = UI.$('#keSemakP', el);
+    if (ks) ks.addEventListener('click', function () { window.__tabMurid = 'peringkat'; App.pergi('murid'); });
   }
 
   function kpi(ik, nilai, label, sub, ton) {
