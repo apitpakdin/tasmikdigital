@@ -13,7 +13,8 @@ var Cetak = (function () {
   }
   function kop() {
     var c = App.DB.config;
-    return '<header class="kop">' + Shell.logoHTML(c.logo, c.namaSekolah) +
+    // Hanya logo sebenar dicetak — tiada huruf ganti jika logo belum dimuat naik
+    return '<header class="kop">' + (c.logo ? '<img class="logo" src="' + esc(c.logo) + '" alt="">' : '') +
       '<div><h1>' + esc(c.namaSekolah || API.sekolah.nama) + '</h1>' + (c.alamat ? '<p>' + esc(c.alamat) + '</p>' : '') + '</div></header>';
   }
   function cetakSekarang(el) {
@@ -53,7 +54,7 @@ var Cetak = (function () {
       var c = App.DB.config;
       var nama = c.namaSekolah || API.sekolah.nama;
       el.innerHTML = '<div class="slip-grid">' + list.map(function (m, i) {
-        return '<article class="slip"><div class="slip-kepala">' + Shell.logoHTML(c.logo, nama) + '<div><b>' + esc(nama) + '</b><span>Kemajuan Bacaan Al-Quran</span></div></div>' +
+        return '<article class="slip"><div class="slip-kepala">' + (c.logo ? '<img class="logo" src="' + esc(c.logo) + '" alt="">' : '') + '<div><b>' + esc(nama) + '</b><span>Kemajuan Bacaan Al-Quran</span></div></div>' +
           '<div class="slip-isi"><div class="slip-qr" id="qr' + i + '"></div><div><p class="slip-nama">' + esc(m.nama) + '</p><p>' + esc(App.labelKelasPenuh(m.darjah + '|' + m.kelas)) + '</p>' +
           '<p class="slip-arah">Imbas kod QR untuk lihat kemajuan bacaan anak anda.</p><p class="slip-kod">Kod: <b>' + esc(m.kodIbuBapa) + '</b></p></div></div></article>';
       }).join('') + '</div>';

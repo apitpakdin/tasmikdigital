@@ -12,7 +12,28 @@ var Transkrip = (function () {
     var guru = App.DB.guru.filter(function (g) {
       return g.peranan === 'guru' && (g.senaraiKelas || []).some(function (k) { return k.darjah === m.darjah && k.kelas === m.kelas; });
     }).map(function (g) { return g.nama; });
-    return { rekod: rekod, khatam: khatam, kbs: kbs, guru: guru };
+    return { rekod: rekod, khatam: khatam, kbs: kbs, guru: guru, penyedia: calonPenyedia(m, rekod) };
+  }
+
+  /* Calon "Disediakan oleh": guru kelas murid dahulu, kemudian guru yang pernah
+     mentasmik murid ini, akhir sekali pengguna yang sedang log masuk. */
+  function calonPenyedia(m, rekod) {
+    var out = [], ada = {};
+    var bil = {}; rekod.forEach(function (r) { bil[r.guruId] = (bil[r.guruId] || 0) + 1; });
+    App.DB.guru.filter(function (g) {
+      return g.status === 'Aktif' && (g.peranan === 'guru' || g.peranan === 'penyelaras') &&
+        (g.senaraiKelas || []).some(function (k) { return k.darjah === m.darjah && k.kelas === m.kelas; });
+    }).sort(function (a, b) { return (bil[b.id] || 0) - (bil[a.id] || 0); }).forEach(function (g) {
+      ada[g.id] = 1; out.push({ id: g.id, nama: g.nama, jawatan: 'Guru Kelas ' + m.darjah + ' ' + m.kelas });
+    });
+    Object.keys(bil).sort(function (a, b) { return bil[b] - bil[a]; }).forEach(function (id) {
+      var g = App.DB.guru.filter(function (x) { return x.id === id && x.status === 'Aktif' && x.peranan !== 'superadmin'; })[0];
+      if (g && !ada[g.id]) { ada[g.id] = 1; out.push({ id: g.id, nama: g.nama, jawatan: 'Guru Tasmik' }); }
+    });
+    if (!ada[App.user.id]) out.push({ id: App.user.id, nama: App.user.nama, jawatan: App.NAMA_PERANAN[App.user.peranan] });
+    // Lalai: pengguna semasa jika dia guru kelas/tasmik murid ini, jika tidak guru kelas pertama
+    var lalai = out.filter(function (x) { return x.id === App.user.id && x.jawatan !== App.NAMA_PERANAN[App.user.peranan]; })[0] || out[0];
+    return { senarai: out, lalai: lalai.id };
   }
 
   /* Peringkat Iqra / Al-Quran: Selesai · Sedang · Belum + tarikh */
@@ -36,7 +57,10 @@ var Transkrip = (function () {
         '<li><b>Bacaan:</b> ' + esc(k.kedudukan) + ' (' + k.pct + '%) · ' + d.rekod.length + ' sesi tasmik' + (d.khatam.length ? ' · khatam ' + d.khatam.length + 'x' : '') + '</li>' +
         (App.modulKBS() ? '<li><b>Bestari Solat:</b> ' + (d.kbs.length ? d.kbs.filter(function (x) { return x.status === 'M'; }).length + ' item dikuasai direkodkan' : 'tiada rekod') + '</li>' : '') + '</ul>' +
         amaranSediaan(c) +
-        '<form class="borang"><label class="medan"><span>Tarikh transkrip</span><input type="date" id="trTarikh" value="' + tarikhTempatan(new Date()) + '" required></label>' +
+        '<form class="borang"><div class="baris-medan"><label class="medan"><span>Disediakan oleh</span><select id="trPenyedia">' + d.penyedia.senarai.map(function (p) {
+          return '<option value="' + esc(p.id) + '"' + (p.id === d.penyedia.lalai ? ' selected' : '') + '>' + esc(p.nama + ' — ' + p.jawatan) + '</option>';
+        }).join('') + '</select></label>' +
+        '<label class="medan"><span>Tarikh transkrip</span><input type="date" id="trTarikh" value="' + tarikhTempatan(new Date()) + '" required></label></div>' +
         '<label class="medan"><span>Ulasan guru (pilihan — dicetak pada transkrip)</span><textarea id="trUlasan" rows="3" maxlength="500" placeholder="cth: Murid lancar membaca, perlu bimbingan tajwid mad."></textarea></label>' +
         (m.status === 'Pindah' ? '' : '<p class="lembut kecil">' + ikon('info') + ' Murid ini belum ditanda "Pindah". Transkrip tetap boleh dicetak sebagai rekod semasa.</p>') + '</form>',
       kaki: '<button class="btn btn-ghost" data-tutup>Batal</button><button class="btn btn-utama" id="trCetak">' + ikon('printer') + ' Cetak / Simpan PDF</button>'
@@ -46,8 +70,10 @@ var Transkrip = (function () {
     UI.$('#trCetak', md).addEventListener('click', function () {
       var ulasan = UI.$('#trUlasan', md).value.trim();
       var t = UI.$('#trTarikh', md).value;
+      var pid = UI.$('#trPenyedia', md).value;
+      var penyedia = d.penyedia.senarai.filter(function (p) { return p.id === pid; })[0];
       md.tutup();
-      cetak(m, ulasan, t ? new Date(t + 'T12:00:00') : new Date());
+      cetak(m, ulasan, t ? new Date(t + 'T12:00:00') : new Date(), penyedia);
     });
   }
 
@@ -67,8 +93,9 @@ var Transkrip = (function () {
         : 'Minta penyelaras mengisinya di Tetapan → Tetapan sekolah. Ruang berkaitan akan dibiarkan kosong.') + '</p></div></div>';
   }
 
-  function cetak(m, ulasan, tarikhDok) {
+  function cetak(m, ulasan, tarikhDok, penyedia) {
     var d = data(m), c = App.DB.config, kini = new Date();
+    penyedia = penyedia || d.penyedia.senarai.filter(function (p) { return p.id === d.penyedia.lalai; })[0];
     tarikhDok = tarikhDok || kini;
     var tarikhTeks = UI.tarikh(tarikhDok.toISOString(), true);
     var jawatan = c.jawatanGB || 'Guru Besar';
@@ -117,9 +144,9 @@ var Transkrip = (function () {
       '<div class="blok-akhir"><h3 class="bahagian-cetak">' + (App.modulKBS() ? 'Bahagian C' : 'Bahagian B') + ' — Ulasan Guru</h3>' +
       '<div class="kotak-ulasan">' + (ulasan ? esc(ulasan) : '&nbsp;') + '</div>' +
 
-      '<div class="tandatangan tiga"><div><p>Disediakan oleh:</p><span class="garis"></span><b>' + esc(App.user.nama) + '</b><small>' + esc(App.NAMA_PERANAN[App.user.peranan]) + '</small><small>' + esc(c.namaSekolah || '') + '</small><small>Tarikh: ' + esc(tarikhTeks) + '</small></div>' +
+      '<div class="tandatangan tiga"><div><p>Disediakan oleh:</p><span class="garis"></span><b>' + esc(penyedia.nama) + '</b><small>' + esc(penyedia.jawatan) + '</small><small>' + esc(c.namaSekolah || '') + '</small><small>Tarikh: ' + esc(tarikhTeks) + '</small></div>' +
       '<div><p>Disahkan oleh:</p><span class="garis"></span><b>' + (c.namaGB ? esc(c.namaGB) : '(................................................)') + '</b><small>' + esc(jawatan) + '</small><small>' + esc(c.namaSekolah || '') + '</small><small>Tarikh: ' + esc(tarikhTeks) + '</small></div>' +
-      '<div class="cop"><span>Cop rasmi sekolah</span></div></div></div>' +
+      '<div class="cop" aria-hidden="true"></div></div></div>' +
       '<footer class="kaki-cetak">Transkrip ini dijana melalui sistem Tasmik Digital pada ' + esc(UI.tarikh(kini.toISOString(), true) + ', ' + UI.masa(kini.toISOString())) + ' · No. Rujukan ' + esc(rujukan) + '. Sah dengan tandatangan dan cop Guru Besar.</footer>' +
       '</div>';
 

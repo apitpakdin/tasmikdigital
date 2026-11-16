@@ -625,7 +625,7 @@ body.ada-modal { overflow: hidden; }
   .tandatangan.tiga { grid-template-columns: 1fr 1fr 110px; gap: 22px; margin-top: 14px; }
   .tandatangan.tiga .garis { height: 34px; }
   .tandatangan small { display: block; font-size: 8pt; color: #333; }
-  .cop { border: 1.5px dashed #888; border-radius: 50%; width: 105px; height: 105px; display: grid; place-items: center; text-align: center; color: #888; font-size: 8pt; }
+  .cop { width: 105px; height: 105px; }   /* ruang kosong untuk cop — tiada garisan atau tulisan */
 }
 
 /* Khatam ikut kelas */
