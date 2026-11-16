@@ -83,15 +83,45 @@
       };
     },
     guru: function () {
+      /* Kumpul SEMUA rekod mengikut guru supaya tiada sesi tersembunyi:
+         1) guru aktif  2) guru tidak aktif yang ada rekod  3) rekod dengan ID guru tiada akaun
+         (dipadan ikut nama jika boleh, cth guru didaftar dua kali dalam sistem lama) */
+      var guru = App.DB.guru.filter(function (g) { return g.status !== 'Padam' && g.peranan !== 'superadmin'; });
+      var ikutId = {}; guru.forEach(function (g) { ikutId[g.id] = g; });
+      var namaKe = function (n) { return String(n || '').toUpperCase().replace(/[^A-Z]/g, ''); };
+      var ikutNama = {}; guru.forEach(function (g) { ikutNama[namaKe(g.nama)] = g; });
+      var baris = {};
+      function slot(key, nama, peranan, kelas, nota) { return baris[key] = baris[key] || { nama: nama, peranan: peranan, kelas: kelas, nota: nota, rs: [] }; }
+      guru.forEach(function (g) {
+        if (g.status === 'Aktif') slot(g.id, g.nama, App.NAMA_PERANAN[g.peranan], (g.senaraiKelas || []).map(function (k) { return App.labelKelas(k.darjah + '|' + k.kelas); }).join(', '), '');
+      });
+      App.DB.rekod.forEach(function (r) {
+        var g = ikutId[r.guruId];
+        if (g) {
+          var s = baris[g.id] || slot(g.id, g.nama, App.NAMA_PERANAN[g.peranan], (g.senaraiKelas || []).map(function (k) { return App.labelKelas(k.darjah + '|' + k.kelas); }).join(', '), 'Akaun tidak aktif');
+          s.rs.push(r); return;
+        }
+        var padan = ikutNama[namaKe(r.guru)];
+        if (padan && padan.status === 'Aktif') {
+          var sp = baris[padan.id]; sp.rs.push(r);
+          sp.idLain = sp.idLain || {}; sp.idLain[r.guruId || '(kosong)'] = 1;
+          return;
+        }
+        slot('?' + (r.guruId || r.guru), r.guru || '(tiada nama)', '—', '', 'Tiada akaun guru untuk ID ' + (r.guruId || '(kosong)')).rs.push(r);
+      });
+      var rows = [];
+      Object.keys(baris).forEach(function (k) {
+        var x = baris[k];
+        var bln = x.rs.filter(function (r) { return dalamBulan(r.tarikh); });
+        if (x.nota && !bln.length) return;   // tunjuk guru bermasalah hanya jika ada rekod bulan ini
+        var akhir = x.rs.reduce(function (a, r) { return !a || new Date(r.tarikh) > new Date(a) ? r.tarikh : a; }, '');
+        var nota = x.nota || (x.idLain ? 'Termasuk rekod dengan ID lama: ' + Object.keys(x.idLain).join(', ') : '');
+        rows.push([x.nama, x.peranan, x.kelas, bln.length, new Set(bln.map(function (r) { return r.muridId; })).size, akhir ? UI.tarikh(akhir) : '—', nota]);
+      });
       return {
         tajuk: 'Laporan Aktiviti Guru', sub: bulanLabel(),
-        headers: ['Nama Guru', 'Peranan', 'Kelas', 'Sesi Bulan Ini', 'Murid Ditasmik', 'Rekod Terakhir'],
-        rows: App.DB.guru.filter(function (g) { return g.status === 'Aktif' && g.peranan !== 'superadmin'; }).map(function (g) {
-          var rs = App.DB.rekod.filter(function (r) { return r.guruId === g.id; });
-          var bln = rs.filter(function (r) { return dalamBulan(r.tarikh); });
-          var akhir = rs.reduce(function (a, r) { return !a || new Date(r.tarikh) > new Date(a) ? r.tarikh : a; }, '');
-          return [g.nama, App.NAMA_PERANAN[g.peranan], (g.senaraiKelas || []).map(function (k) { return App.labelKelas(k.darjah + '|' + k.kelas); }).join(', '), bln.length, new Set(bln.map(function (r) { return r.muridId; })).size, akhir ? UI.tarikh(akhir) : '—'];
-        }).sort(function (a, b) { return b[3] - a[3]; })
+        headers: ['Nama Guru', 'Peranan', 'Kelas', 'Sesi Bulan Ini', 'Murid Ditasmik', 'Rekod Terakhir', 'Catatan'],
+        rows: rows.sort(function (a, b) { return b[3] - a[3]; })
       };
     },
     kbs: function () {
