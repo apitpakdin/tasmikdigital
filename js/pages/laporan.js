@@ -86,23 +86,24 @@
       /* Kumpul SEMUA rekod mengikut guru supaya tiada sesi tersembunyi:
          1) guru aktif  2) guru tidak aktif yang ada rekod  3) rekod dengan ID guru tiada akaun
          (dipadan ikut nama jika boleh, cth guru didaftar dua kali dalam sistem lama) */
-      var guru = App.DB.guru.filter(function (g) { return g.status !== 'Padam' && g.peranan !== 'superadmin'; });
+      var guru = App.DB.guru.filter(function (g) { return g.status !== 'Padam'; });
       var ikutId = {}; guru.forEach(function (g) { ikutId[g.id] = g; });
       var namaKe = function (n) { return String(n || '').toUpperCase().replace(/[^A-Z]/g, ''); };
       var ikutNama = {}; guru.forEach(function (g) { ikutNama[namaKe(g.nama)] = g; });
       var baris = {};
       function slot(key, nama, peranan, kelas, nota) { return baris[key] = baris[key] || { nama: nama, peranan: peranan, kelas: kelas, nota: nota, rs: [] }; }
       guru.forEach(function (g) {
-        if (g.status === 'Aktif') slot(g.id, g.nama, App.NAMA_PERANAN[g.peranan], (g.senaraiKelas || []).map(function (k) { return App.labelKelas(k.darjah + '|' + k.kelas); }).join(', '), '');
+        if (g.status === 'Aktif' && g.peranan !== 'superadmin') slot(g.id, g.nama, App.NAMA_PERANAN[g.peranan], (g.senaraiKelas || []).map(function (k) { return App.labelKelas(k.darjah + '|' + k.kelas); }).join(', '), '');
       });
       App.DB.rekod.forEach(function (r) {
         var g = ikutId[r.guruId];
         if (g) {
-          var s = baris[g.id] || slot(g.id, g.nama, App.NAMA_PERANAN[g.peranan], (g.senaraiKelas || []).map(function (k) { return App.labelKelas(k.darjah + '|' + k.kelas); }).join(', '), 'Akaun tidak aktif');
+          var s = baris[g.id] || slot(g.id, g.nama, App.NAMA_PERANAN[g.peranan], (g.senaraiKelas || []).map(function (k) { return App.labelKelas(k.darjah + '|' + k.kelas); }).join(', '),
+            g.peranan === 'superadmin' ? 'Akaun ini kini Super Admin — asingkan akaun guru (Pengguna → Peranan: Guru)' : 'Akaun tidak aktif');
           s.rs.push(r); return;
         }
         var padan = ikutNama[namaKe(r.guru)];
-        if (padan && padan.status === 'Aktif') {
+        if (padan && padan.status === 'Aktif' && padan.peranan !== 'superadmin') {
           var sp = baris[padan.id]; sp.rs.push(r);
           sp.idLain = sp.idLain || {}; sp.idLain[r.guruId || '(kosong)'] = 1;
           return;
