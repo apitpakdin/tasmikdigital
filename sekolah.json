@@ -1,4 +1,4 @@
 {
   "DEMO": { "nama": "SK Contoh Tasmik Digital (DEMO)", "demo": true },
-  "SKDK": { "nama": "SK Datin Khadijah", "api": "GANTI_DENGAN_URL_WEB_APP_SKDK" }
+  "SKDK": { "nama": "SK Datin Khadijah", "api": "https://script.google.com/macros/s/AKfycbzera1kqcscM4JstjqEjL6PRBaTl90ZMjht62DIBsm70e5ZwgToFUkrOwEJyphe7vV2/exec" }
 }
