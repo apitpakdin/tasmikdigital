@@ -665,3 +665,37 @@ body.ada-modal { overflow: hidden; }
 .tp-frasa [data-cadang] { background: var(--emas-lembut); border-color: var(--emas); }
 
 #tAlamat { min-height: 84px; resize: vertical; text-transform: uppercase; }
+
+/* Graf bulanan 12 lajur — muat di telefon */
+.graf-lajur b, .graf-lajur i { white-space: nowrap; max-width: 100%; overflow: visible; text-align: center; }
+.graf.padat { gap: 4px; }
+.graf.padat .graf-lajur b { font-size: .64rem; }
+.graf.padat .graf-lajur i { font-size: .64rem; letter-spacing: -.02em; }
+/* Analisis Tasmik Mingguan — tanpa skrol mendatar */
+.analisis-mingguan { table-layout: fixed; width: 100%; }
+.analisis-mingguan col.c-kelas { width: 34%; }
+.analisis-mingguan col.c-n { width: 15%; }
+.analisis-mingguan col.c-liputan { width: 36%; }
+.analisis-mingguan td, .analisis-mingguan th { overflow: hidden; text-overflow: ellipsis; }
+.analisis-mingguan .sel-bar { min-width: 0; gap: 6px; }
+.analisis-mingguan .sel-bar .bar { min-width: 20px; }
+.analisis-mingguan .pdk { display: none; }
+@media (max-width: 899px) {
+  .graf.padat { gap: 2px; }
+  .graf.padat .graf-lajur b, .graf.padat .graf-lajur i { font-size: .56rem; }
+  .graf.padat .graf-lajur span { border-radius: 4px 4px 2px 2px; }
+  .analisis-mingguan { font-size: .8rem; }
+  .analisis-mingguan th { font-size: .62rem; padding: 8px 4px; letter-spacing: 0; white-space: normal; }
+  .analisis-mingguan td { padding: 8px 4px; }
+  .analisis-mingguan col.c-kelas { width: 30%; }
+  .analisis-mingguan col.c-n { width: 17%; }
+  .analisis-mingguan .pjg { display: none; }
+  .analisis-mingguan .pdk { display: inline; }
+  .analisis-mingguan .sel-bar span { font-size: .72rem; }
+}
+@media (max-width: 359px) {
+  .analisis-mingguan th, .analisis-mingguan td { padding-left: 2px; padding-right: 2px; }
+  .analisis-mingguan th { font-size: .58rem; }
+  .analisis-mingguan col.c-kelas { width: 28%; }
+  .analisis-mingguan col.c-n { width: 18%; }
+}

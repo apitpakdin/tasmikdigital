@@ -61,7 +61,7 @@
 
     html += '<div class="grid-2">' +
       kad('Sesi 5 hari persekolahan', graf(data5, function (x) { return x.n + ' sesi · ' + x.u + ' murid (' + x.tarikh + ')'; })) +
-      kad('Sesi bulanan ' + tahun, graf(bulanan, function (x) { return x.n + ' sesi'; })) +
+      kad('Sesi bulanan ' + tahun, graf(bulanan, function (x) { return x.n + ' sesi'; }, true)) +
       '</div>';
 
     // Taburan peringkat
@@ -82,7 +82,7 @@
     }).join('') + '</ul>' + (amaran.length > 6 ? '<a class="pautan" href="#/amaran">Lihat semua ' + amaran.length + ' murid ' + ikon('chevR') + '</a>' : '')
       : UI.kosong('check', 'Semua murid aktif', 'Tiada murid melebihi ' + hari + ' hari tanpa rekod.');
 
-    html += '<div class="grid-2">' + kad('Taburan peringkat bacaan', taburan) + kad('Perlu perhatian', senaraiAmaran) + '</div>';
+    html += '<div class="grid-2">' + kad('Analisis Peringkat Bacaan Murid', taburan) + kad('Perlu perhatian', senaraiAmaran) + '</div>';
 
     // Prestasi kelas (pentadbir & GB)
     if (App.lihatSemua() && !App.skop) {
@@ -93,9 +93,12 @@
         var aktif = ms.filter(function (m) { return u[m.id]; }).length;
         var pc = ms.length ? Math.round(aktif / ms.length * 100) : 0;
         var quran = ms.filter(function (m) { return m.peringkat === 'Al-Quran' || m.peringkat === 'Khatam'; }).length;
-        return '<tr><td><b>' + esc(App.labelKelasPenuh(k)) + '</b></td><td class="nombor">' + ms.length + '</td><td class="nombor">' + quran + '</td><td><div class="sel-bar">' + UI.bar(pc, pc < 50 ? 'warn' : '') + '<span>' + pc + '%</span></div></td></tr>';
+        return '<tr><td><b><span class="pjg">' + esc(App.labelKelasPenuh(k)) + '</span><span class="pdk">' + esc(App.labelKelas(k)) + '</span></b></td><td class="nombor">' + ms.length + '</td><td class="nombor">' + quran + '</td>' +
+          '<td><div class="sel-bar">' + UI.bar(pc, pc < 50 ? 'warn' : '') + '<span>' + pc + '%</span></div></td></tr>';
       }).join('');
-      html += kad('Liputan tasmik minggu ini mengikut kelas', baris ? '<div class="jadual-wrap"><table class="jadual"><thead><tr><th>Kelas</th><th class="nombor">Murid</th><th class="nombor">Al-Quran</th><th>Liputan</th></tr></thead><tbody>' + baris + '</tbody></table></div>' : UI.kosong('users', 'Belum ada kelas'));
+      html += kad('Analisis Tasmik Mingguan', baris ? '<p class="lembut kecil">Peratus murid setiap kelas yang telah ditasmik sejak Isnin minggu ini.</p>' +
+        '<table class="jadual analisis-mingguan"><colgroup><col class="c-kelas"><col class="c-n"><col class="c-n"><col class="c-liputan"></colgroup>' +
+        '<thead><tr><th>Kelas</th><th class="nombor">Murid</th><th class="nombor"><span class="pjg">Al-Quran</span><span class="pdk">Quran</span></th><th>Liputan</th></tr></thead><tbody>' + baris + '</tbody></table>' : UI.kosong('users', 'Belum ada kelas'));
     }
 
     // Rekod terkini
@@ -117,9 +120,9 @@
     return '<section class="kad"><div class="kad-kepala"><h2>' + esc(tajuk) + '</h2>' + (aksi || '') + '</div><div class="kad-badan">' + isi + '</div></section>';
   }
   function avatar(m) { return '<span class="avatar kecil ' + UI.tonPeringkat(m.peringkat) + '">' + esc(UI.inisial(m.nama)) + '</span>'; }
-  function graf(data, tip) {
+  function graf(data, tip, padat) {
     var mx = Math.max.apply(null, data.map(function (x) { return x.n; }).concat([1]));
-    return '<div class="graf" role="img" aria-label="Graf bar">' + data.map(function (x) {
+    return '<div class="graf' + (padat ? ' padat' : '') + '" role="img" aria-label="Graf bar">' + data.map(function (x) {
       return '<div class="graf-lajur' + (x.hariIni ? ' kini' : '') + '" title="' + esc(x.label + ': ' + tip(x)) + '"><b>' + (x.n || '') + '</b><span style="height:' + Math.max(3, Math.round(x.n / mx * 100)) + '%"></span><i>' + esc(x.label) + '</i></div>';
     }).join('') + '</div>';
   }
