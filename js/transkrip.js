@@ -24,7 +24,7 @@ var Transkrip = (function () {
       return g.status === 'Aktif' && (g.peranan === 'guru' || g.peranan === 'penyelaras') &&
         (g.senaraiKelas || []).some(function (k) { return k.darjah === m.darjah && k.kelas === m.kelas; });
     }).sort(function (a, b) { return (bil[b.id] || 0) - (bil[a.id] || 0); }).forEach(function (g) {
-      ada[g.id] = 1; out.push({ id: g.id, nama: g.nama, jawatan: 'Guru Kelas ' + m.darjah + ' ' + m.kelas });
+      ada[g.id] = 1; out.push({ id: g.id, nama: g.nama, jawatan: 'Guru Kelas ' + App.labelKelas(m.darjah + '|' + m.kelas) });
     });
     Object.keys(bil).sort(function (a, b) { return bil[b] - bil[a]; }).forEach(function (id) {
       var g = App.DB.guru.filter(function (x) { return x.id === id && x.status === 'Aktif' && x.peranan !== 'superadmin'; })[0];
@@ -39,11 +39,17 @@ var Transkrip = (function () {
   /* Peringkat Iqra / Al-Quran: Selesai · Sedang · Belum + tarikh */
   function peringkat(m, rekod) {
     var kini = D.PERINGKAT.indexOf(m.peringkat || 'Iqra 1');
-    return D.PERINGKAT.slice(0, 7).map(function (p, i) {
+    var baris = D.PERINGKAT.slice(0, 7).map(function (p, i) {
       var rs = rekod.filter(function (r) { return r.peringkat === p; });
       var status = i < kini || m.peringkat === 'Khatam' ? 'Selesai' : i === kini ? 'Sedang dibaca' : 'Belum';
       return { p: p, status: status, mula: rs[0] ? rs[0].tarikh : '', akhir: rs.length ? rs[rs.length - 1].tarikh : '', sesi: rs.length };
     });
+    // Murid Al-Quran / Khatam: Iqra 1–6 diringkaskan kepada satu baris "Selesai"
+    if (kini >= 6) {
+      var iq = rekod.filter(function (r) { return /^Iqra/.test(r.peringkat || ''); });
+      baris = [{ p: 'Iqra 1–6', status: 'Selesai', mula: iq[0] ? iq[0].tarikh : '', akhir: iq.length ? iq[iq.length - 1].tarikh : '', sesi: iq.length }].concat(baris.slice(6));
+    }
+    return baris;
   }
 
   function buka(m) {

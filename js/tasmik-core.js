@@ -11,7 +11,7 @@
 var TasmikCore = (function () {
   'use strict';
 
-  var VERSI = '3.4.0';
+  var VERSI = '3.4.1';
 
   /* ── Skema jadual: [kunci, tajuk lajur dalam Sheet] ──
      Tajuk lajur kekal sama seperti versi lama (SKDK) supaya
@@ -103,6 +103,41 @@ var TasmikCore = (function () {
       if (!lihat[x]) { lihat[x] = 1; out.push(x); }
     });
     return out.join(';');
+  }
+
+  /* ── Pembetulan peringkat Al-Quran ──
+     Data lama: Jenis = "Al-Quran" tetapi Peringkat = "Iqra 1" (medan tersembunyi
+     dalam borang lama). Juga murid yang ada sesi tasmik Al-Quran tetapi
+     peringkatnya Iqra. Kembalikan { id: patch } untuk murid yang perlu dibetulkan. */
+  function ialahQuran(x) {
+    return x && (x.jenis === 'Al-Quran' || x.peringkat === 'Al-Quran' || /^Al-Quran/i.test(String(x.iqraLabel || '')));
+  }
+  function betulkanPeringkat(murid, rekod) {
+    var akhirQuran = {};
+    (rekod || []).forEach(function (r) {
+      if (!ialahQuran(r) || !r.muridId) return;
+      var a = akhirQuran[r.muridId];
+      if (!a || new Date(r.tarikh) > new Date(a.tarikh)) akhirQuran[r.muridId] = r;
+    });
+    var patch = {};
+    (murid || []).forEach(function (m) {
+      if (m.peringkat === 'Khatam' || m.peringkat === 'Al-Quran') {
+        if (m.peringkat === 'Al-Quran' && m.jenis !== 'Al-Quran') patch[m.id] = { jenis: 'Al-Quran' };
+        return;
+      }
+      var r = akhirQuran[m.id];
+      if (ialahQuran(m) || r) {
+        var p = { jenis: 'Al-Quran', peringkat: 'Al-Quran' };
+        if (r && (parseInt(r.ke, 10) || 0) > 0) {
+          var ms = parseInt(r.ke, 10);
+          if (!ialahQuran(m) || (parseInt(m.mukaSurat, 10) || 0) < ms) p.mukaSurat = ms;
+        }
+        var akhir = p.mukaSurat || parseInt(m.mukaSurat, 10) || 1;
+        p.iqraLabel = 'Al-Quran (Juzuk ' + (akhir <= 1 ? 1 : Math.min(30, Math.floor((akhir - 1) / 20) + 1)) + ')';
+        patch[m.id] = p;
+      }
+    });
+    return patch;
   }
 
   /* ── SHA-256 tulen JS (digunakan jika adapter tiada versi pantas) ── */
@@ -316,6 +351,10 @@ var TasmikCore = (function () {
         kumpulan: env.store.all('Kumpulan').map(bersihObj),
         config: c
       };
+      // Paparkan peringkat sebenar (cth murid Al-Quran yang tersimpan sebagai "Iqra 1")
+      var betul = betulkanPeringkat(data.murid, data.rekod);
+      data.murid.forEach(function (m) { if (betul[m.id]) for (var k in betul[m.id]) m[k] = betul[m.id][k]; });
+      data.rekod.forEach(function (r) { if (ialahQuran(r) && r.peringkat !== 'Al-Quran') { r.peringkat = 'Al-Quran'; r.jenis = 'Al-Quran'; } });
       // Guru biasa tidak perlu nampak kod ibu bapa murid kelas lain — tetap dihantar
       // kerana guru boleh cetak slip kelas sendiri; tapis di sini:
       if (user.peranan === 'guru') {
@@ -778,7 +817,7 @@ var TasmikCore = (function () {
   }
 
   return {
-    VERSI: VERSI, SKEMA: SKEMA, normalKelas: normalKelas, normalDarjah: normalDarjah, normalKelasList: normalKelasList, NOMBOR: NOMBOR, PERANAN: PERANAN, CONFIG_KUNCI: CONFIG_KUNCI,
+    VERSI: VERSI, SKEMA: SKEMA, betulkanPeringkat: betulkanPeringkat, normalKelas: normalKelas, normalDarjah: normalDarjah, normalKelasList: normalKelasList, NOMBOR: NOMBOR, PERANAN: PERANAN, CONFIG_KUNCI: CONFIG_KUNCI,
     cipta: cipta, sha256Hex: sha256Hex, hashLama: hashLama
   };
 })();

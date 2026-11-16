@@ -96,7 +96,9 @@
           '<a class="btn btn-ghost" href="#/khatam">Rekod khatam</a>');
       return;
     }
-    var f = { jenis: m.peringkat === 'Al-Quran' ? 'Al-Quran' : (m.jenis === 'Al-Quran' ? 'Iqra Baru' : (m.jenis || 'Iqra Baru')), peringkat: m.peringkat || 'Iqra 1', kualiti: D.KUALITI[0].v, kemaskini: true, naik: false };
+    // Murid berjenis Al-Quran SENTIASA dibuka sebagai Al-Quran (data lama mungkin tersimpan "Iqra 1")
+    var quran = m.peringkat === 'Al-Quran' || m.jenis === 'Al-Quran' || /^Al-Quran/i.test(String(m.iqraLabel || ''));
+    var f = { jenis: quran ? 'Al-Quran' : (m.jenis === 'Iqra Lama' ? 'Iqra Lama' : 'Iqra Baru'), peringkat: quran ? 'Al-Quran' : (D.IQRA_SAHAJA.indexOf(m.peringkat) >= 0 ? m.peringkat : 'Iqra 1'), kualiti: D.KUALITI[0].v, kemaskini: true, naik: false };
     var akhir = App.rekodAkhir(m.id);
     var kj = D.kemajuan(m);
 
