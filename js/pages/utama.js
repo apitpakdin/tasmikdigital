@@ -97,8 +97,7 @@
         return '<tr><td><b><span class="pjg">' + esc(App.labelKelasPenuh(k)) + '</span><span class="pdk">' + esc(App.labelKelas(k)) + '</span></b></td><td class="nombor">' + ms.length + '</td><td class="nombor">' + quran + '</td>' +
           '<td><div class="sel-bar">' + UI.bar(pc, pc < 50 ? 'warn' : '') + '<span>' + pc + '%</span></div></td></tr>';
       }).join('');
-      html += kad('Analisis Tasmik Mingguan', baris ? '<p class="lembut kecil">Peratus murid setiap kelas' + (App.lihatSemua() ? '' : ' yang anda ajar') + ' yang telah ditasmik sejak Isnin minggu ini.</p>' +
-        '<table class="jadual analisis-mingguan"><colgroup><col class="c-kelas"><col class="c-n"><col class="c-n"><col class="c-liputan"></colgroup>' +
+      html += kad('Analisis Tasmik Mingguan', baris ? '<table class="jadual analisis-mingguan"><colgroup><col class="c-kelas"><col class="c-n"><col class="c-n"><col class="c-liputan"></colgroup>' +
         '<thead><tr><th>Kelas</th><th class="nombor">Murid</th><th class="nombor"><span class="pjg">Al-Quran</span><span class="pdk">Quran</span></th><th>Liputan</th></tr></thead><tbody>' + baris + '</tbody></table>' : UI.kosong('users', 'Belum ada kelas'));
     }
 
