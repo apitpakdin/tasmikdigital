@@ -77,7 +77,7 @@ var Demo = (function () {
         { id: 'KPD1', nama: 'Kumpulan A', darjah: 'Darjah 1', kelas: 'Bestari', warna: '#0b5d4b', muridIds: murid.filter(function (m) { return m.darjah === 'Darjah 1'; }).slice(0, 4).map(function (m) { return m.id; }).join(','), guruId: 'GD01' },
         { id: 'KPD2', nama: 'Kumpulan B', darjah: 'Darjah 1', kelas: 'Bestari', warna: '#2563eb', muridIds: murid.filter(function (m) { return m.darjah === 'Darjah 1'; }).slice(4).map(function (m) { return m.id; }).join(','), guruId: 'GD01' }
       ],
-      Config: { namaSekolah: 'SK Contoh Tasmik Digital', alamat: 'Jalan Pendidikan, 30000 Ipoh, Perak', namaGB: 'HJ. ZULKIFLI BIN OMAR', modulKBS: 'TRUE', alertDays: '7', tahunSemasa: '2026', senaraiKelas: 'Bestari, Cerdas' },
+      Config: { namaSekolah: 'SK Contoh Tasmik Digital', alamat: 'Jalan Pendidikan, 30000 Ipoh, Perak', namaGB: 'HJ. ZULKIFLI BIN OMAR', modulKBS: 'TRUE', alertDays: '7', tahunSemasa: '2026', senaraiKelas: 'Bestari, Cerdas', sandaranAkhir: new Date(Date.now() - 2 * 864e5).toISOString() },
       Log: [], Sesi: {}
     };
   }

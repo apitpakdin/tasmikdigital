@@ -3,6 +3,24 @@
   var esc = UI.esc, ikon = UI.ikon;
   var pratonton = null;
 
+  /* Status sandaran automatik mingguan (Google Sheet → folder "Sandaran Tasmik Digital") */
+  function kadSandaran() {
+    var c = App.DB.config || {}, sa = App.ialah('superadmin');
+    var akhir = c.sandaranAkhir ? new Date(c.sandaranAkhir) : null;
+    var hari = akhir && !isNaN(akhir) ? Math.floor((Date.now() - akhir) / 864e5) : null;
+    var ok = hari !== null && hari <= 8;
+    var baiki = sa ? 'Tampal Code.gs terkini, kemudian jalankan menu Tasmik Digital → 1. Pasang / Naik Taraf dalam Google Sheet.' : 'Sila maklumkan kepada pentadbir Tasmik Digital.';
+    var status = hari === null
+      ? '<div class="amaran-kotak warn">' + ikon('alert') + '<div><b>Sandaran automatik belum aktif</b><p>' + baiki + '</p></div></div>'
+      : '<div class="amaran-kotak ' + (ok ? 'ok' : 'warn') + '">' + ikon(ok ? 'shield' : 'alert') + '<div><b>Sandaran terakhir: ' + esc(UI.tarikh(c.sandaranAkhir, true)) +
+        ' (' + (hari === 0 ? 'hari ini' : hari + ' hari lalu') + ')</b><p>' +
+        (ok ? 'Salinan Google Sheet dibuat automatik setiap Ahad. 8 salinan terakhir disimpan dalam folder "Sandaran Tasmik Digital" di Google Drive akaun sekolah.'
+            : 'Sandaran mingguan tidak berjalan. ' + baiki) + '</p></div></div>';
+    return '<section class="kad"><div class="kad-kepala"><h2>' + ikon('shield') + ' Sandaran data</h2></div><div class="kad-badan">' + status +
+      (sa ? '<div class="grid-butang"><button class="btn btn-ghost" id="dSandaran">' + ikon('shield') + ' Buat sandaran sekarang</button></div>' : '') +
+      '</div></section>';
+  }
+
   function papar(el) {
     var sa = App.ialah('superadmin');
     el.innerHTML = '<section class="kad"><div class="kad-kepala"><h2>' + ikon('download') + ' Export data</h2></div><div class="kad-badan">' +
@@ -14,8 +32,7 @@
       '<button class="btn btn-ghost" data-ex="khatam">' + ikon('trophy') + ' Rekod khatam</button>' +
       (App.modulKBS() ? '<button class="btn btn-ghost" data-ex="kbs">' + ikon('moon') + ' Bestari Solat</button>' : '') +
       '</div>' +
-      (App.pentadbir() ? '<p class="lembut kecil">' + ikon('info') + ' Sandaran penuh juga sentiasa tersedia dalam Google Sheet sekolah (File → Make a copy).</p>' : '') +
-      '</div></section>' +
+      '</div></section>' + (App.pentadbir() ? kadSandaran() : '') +
       (App.pentadbir() ? '<section class="kad"><div class="kad-kepala"><h2>' + ikon('calendar') + ' Persediaan tahun baharu</h2></div><div class="kad-badan">' +
         '<p class="lembut">Pada bulan November, muat turun templat Tukar Tahun, isi nama murid Tahun 1 dan kelas guru tahun depan, kemudian hantar kepada pentadbir Tasmik Digital.</p>' +
         '<div class="grid-butang"><button class="btn btn-ghost" id="dTemplatTahun">' + ikon('download') + ' Templat Tukar Tahun</button></div></div></section>' : '') +
@@ -28,6 +45,14 @@
           '<button class="btn btn-ghost" id="dTemplat">' + ikon('download') + ' Muat turun templat</button>') +
       '</div></section>';
 
+    var bs = UI.$('#dSandaran'); if (bs) bs.addEventListener('click', function () {
+      bs.disabled = true; bs.innerHTML = '<span class="pusing"></span> Membuat sandaran…';
+      API.panggil('sandaran').then(function (r) {
+        if (!r || !r.ok) throw new Error(r && r.msg || 'Sandaran gagal');
+        App.DB.config.sandaranAkhir = r.tarikh || new Date().toISOString(); App.DB.config.sandaranNama = r.nama;
+        UI.toast('Sandaran dibuat: ' + r.nama, 'ok'); papar(el);
+      }).catch(function (e) { UI.toast(e.message, 'err'); bs.disabled = false; bs.innerHTML = ikon('shield') + ' Buat sandaran sekarang'; });
+    });
     UI.$$('[data-ex]', el).forEach(function (b) { b.addEventListener('click', function () { eksport(b.dataset.ex); }); });
     UI.$('#dTemplat').addEventListener('click', function () {
       Cetak.excel('Templat_Import_Murid_Tasmik_Digital.xlsx', [{ nama: 'Murid', headers: ['Nama', 'Darjah', 'Kelas', 'Jenis (pilihan)', 'Peringkat (pilihan)', 'Muka Surat (pilihan)'],

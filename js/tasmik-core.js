@@ -11,7 +11,7 @@
 var TasmikCore = (function () {
   'use strict';
 
-  var VERSI = '3.4.2';
+  var VERSI = '3.5.0';
 
   /* ── Skema jadual: [kunci, tajuk lajur dalam Sheet] ──
      Tajuk lajur kekal sama seperti versi lama (SKDK) supaya

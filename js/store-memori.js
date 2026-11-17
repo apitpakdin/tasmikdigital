@@ -51,9 +51,11 @@ var StoreMemori = (function () {
         kunci: function (fn) { return fn(); },
         sandaran: function (nama) {
           data.Sandaran = data.Sandaran || [];
-          data.Sandaran.push({ nama: nama, masa: new Date().toISOString(), bil: data.Murid.length });
+          var kini = new Date().toISOString();
+          data.Sandaran.push({ nama: nama, masa: kini, bil: data.Murid.length });
+          data.Config.sandaranAkhir = kini; data.Config.sandaranNama = nama;
           ubah();
-          return { ok: true, nama: nama, url: '' };
+          return { ok: true, nama: nama, url: '', tarikh: kini };
         }
       }
     };
