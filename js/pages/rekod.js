@@ -107,6 +107,7 @@
       '<div class="kad-kepala murid-kepala"><span class="avatar ' + UI.tonPeringkat(m.peringkat) + '">' + esc(UI.inisial(m.nama)) + '</span>' +
       '<div><h2>' + esc(UI.namaPendek(m.nama)) + '</h2><p class="lembut">' + esc(App.labelKelasPenuh(m.darjah + '|' + m.kelas)) + (akhir ? ' · Terakhir ' + esc(UI.relatif(akhir.tarikh).toLowerCase()) + ' (m/s ' + esc(akhir.dari + '–' + akhir.ke) + ', ' + esc(D.kualiti(akhir.kualiti).label) + ')' : ' · Belum ada rekod') + '</p></div></div>' +
       '<div class="kemajuan-mini">' + UI.bar(kj.pct, kj.fasa === 'Al-Quran' ? 'ungu' : '') + '<span>' + esc(kj.kedudukan) + ' · ' + kj.pct + '%</span></div>' +
+      rekodLepas(m) +
       (m.semakPeringkat ? '<div class="amaran-kotak warn" id="rkSemak">' + UI.ikon('alert') + '<div><b>Sahkan jenis bacaan murid ini</b><p>' + esc(m.semakPeringkat.sebab) +
         ' (data sistem lama). Pilih <b>Iqra</b> atau <b>Al-Quran</b> di bawah mengikut bacaan sebenar — kedudukan murid akan dikemas kini bila rekod disimpan.</p></div></div>' : '') +
       '<form id="fRekod" class="borang">' +
@@ -158,6 +159,11 @@
           if (f.jenis === 'Al-Quran') msg += ' · ' + D.labelBacaan('Al-Quran', 'Al-Quran', a, b).replace('Al-Quran ', '');
           if (b >= jl.ke && f.jenis !== 'Al-Quran') msg += ' · Tamat ' + f.peringkat + '!';
         }
+      }
+      var jangka = dariCadangan(m);
+      if (ton !== 'ralat' && akhir && a && a !== jangka && f.jenis === m.jenis && f.peringkat === (m.peringkat || 'Iqra 1')) {
+        msg = '⚠ Tidak bersambung — bacaan sepatutnya bermula m/s ' + jangka + '. Pastikan murid membaca di tempat yang betul.' + (msg ? ' (' + msg + ')' : '');
+        ton = 'amaran';
       }
       info.textContent = msg; info.className = 'info-medan ' + ton;
       // Cadang naik peringkat bila sampai muka surat akhir
@@ -230,6 +236,23 @@
     var seterus = senaraiMurid().filter(function (x) { return !x.siap && x.m.id !== m.id; })[0];
     st.muridId = seterus ? seterus.m.id : '';
     paparSenarai(); paparBorang(); paparHariIni(); Shell.kiraanAmaran();
+  }
+
+  /* 3 rekod terakhir murid — guru semak murid membaca di tempat yang betul */
+  function rekodLepas(m) {
+    var rs = App.DB.rekod.filter(function (r) { return r.muridId === m.id; })
+      .sort(function (a, b) { return new Date(b.tarikh) - new Date(a.tarikh); }).slice(0, 3);
+    if (!rs.length) return '';
+    return '<div class="rk-lepas"><small>' + ikon('clock') + ' ' + rs.length + ' bacaan terakhir</small><ol>' + rs.map(function (r, i) {
+      // Jurang dengan rekod sebelumnya (lebih lama) dalam bacaan yang sama
+      var lama = rs[i + 1], putus = lama && lama.jenis === r.jenis && lama.peringkat === r.peringkat &&
+        parseInt(r.dari, 10) > parseInt(lama.ke, 10) + 1;
+      var d = new Date(r.tarikh);
+      return '<li' + (i === 0 ? ' class="akhir"' : '') + '><span class="rk-tarikh">' + esc(D.HARI[d.getDay()].slice(0, 3) + ', ' + d.getDate() + ' ' + D.BULAN[d.getMonth()]) + '</span>' +
+        '<span class="rk-bacaan"><b>' + esc((r.jenis === 'Al-Quran' ? 'Al-Quran' : r.peringkat) + ' · m/s ' + r.dari + '–' + r.ke) + '</b>' +
+        '<em>' + esc(D.kualiti(r.kualiti).label + (r.guru && r.guruId !== App.user.id ? ' · ' + UI.namaPendek(r.guru) : '')) + (putus ? ' · <i class="rk-putus">lompat m/s ' + (parseInt(lama.ke, 10) + 1) + '–' + (parseInt(r.dari, 10) - 1) + '</i>' : '') + '</em>' +
+        (r.catatan ? '<q>' + esc(r.catatan) + '</q>' : '') + '</span></li>';
+    }).join('') + '</ol></div>';
   }
 
   function paparHariIni() {

@@ -756,3 +756,18 @@ body.ada-modal { overflow: hidden; }
 .ib-galakan { display: flex; gap: 10px; align-items: flex-start; background: var(--emas-lembut); color: var(--emas-teks); border-radius: 14px; padding: 12px 14px; margin: 12px 0; }
 .ib-galakan p { margin: 0; line-height: 1.5; }
 .ib-galakan svg { flex: none; margin-top: 2px; }
+
+/* Rekod: 3 bacaan terakhir murid */
+.rk-lepas { margin: 10px 0 4px; border: 1px solid var(--garis); border-radius: 12px; padding: 8px 12px; }
+.rk-lepas > small { display: flex; align-items: center; gap: 6px; color: var(--lembut); font-weight: 600; font-size: .78rem; }
+.rk-lepas > small svg { width: 14px; height: 14px; }
+.rk-lepas ol { list-style: none; margin: 4px 0 0; padding: 0; }
+.rk-lepas li { display: flex; gap: 10px; padding: 6px 0; border-top: 1px dashed var(--garis); font-size: .86rem; }
+.rk-lepas li:first-child { border-top: 0; }
+.rk-lepas li.akhir .rk-bacaan b { color: var(--pri-teks); }
+.rk-tarikh { flex: none; width: 78px; color: var(--lembut); font-size: .8rem; padding-top: 1px; }
+.rk-bacaan { display: flex; flex-direction: column; min-width: 0; }
+.rk-bacaan em { font-style: normal; color: var(--lembut); font-size: .78rem; }
+.rk-bacaan q { font-size: .78rem; color: var(--teks); quotes: none; font-style: italic; overflow-wrap: anywhere; }
+.rk-putus { font-style: normal; color: var(--warn, #b45309); font-weight: 700; }
+.info-medan.amaran { color: var(--warn, #b45309); }
