@@ -1,7 +1,7 @@
 /* ================================================================
    APLIKASI — keadaan, peranan, skop data, navigasi
    ================================================================ */
-var APP_VERSI = '3.6.0';
+var APP_VERSI = '3.7.0';
 var BACKEND_MIN = '3.4.0';
 
 var App = (function () {
@@ -41,6 +41,12 @@ var App = (function () {
   function ialah() { var a = Array.prototype.slice.call(arguments); return !!user && a.indexOf(user.peranan) >= 0; }
   function bolehTulis() { return ialah('guru', 'penyelaras', 'superadmin'); }
   function pentadbir() { return ialah('penyelaras', 'superadmin'); }
+  /* Isnin minggu semasa, 00:00 (Sabtu/Ahad → Isnin minggu yang baru berlalu) */
+  function mulaMinggu(d) {
+    var x = d ? new Date(d) : new Date();
+    x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - (x.getDay() + 6) % 7);
+    return x;
+  }
   function lihatSemua() { return ialah('penyelaras', 'gb', 'superadmin'); }
   function modulKBS() { return DB.config.modulKBS !== 'FALSE'; }
   function menuDibenar() {
@@ -165,7 +171,7 @@ var App = (function () {
     versiBackend: '',
     set memuatPertama(v) { memuatPertama = v; },
     NAMA_PERANAN: NAMA_PERANAN, MENU: MENU, BAWAH: BAWAH,
-    daftar: daftar, ialah: ialah, bolehTulis: bolehTulis, pentadbir: pentadbir, lihatSemua: lihatSemua, modulKBS: modulKBS,
+    daftar: daftar, ialah: ialah, mulaMinggu: mulaMinggu, bolehTulis: bolehTulis, pentadbir: pentadbir, lihatSemua: lihatSemua, modulKBS: modulKBS,
     menuDibenar: menuDibenar, bina: bina, rekodAkhir: rekodAkhir, semuaKelas: semuaKelas, kelasSaya: kelasSaya,
     namaKelasSekolah: namaKelasSekolah, muridSaya: muridSaya, rekodSaya: rekodSaya, labelKelas: labelKelas, labelKelasPenuh: labelKelasPenuh,
     simpanDB: simpanDB, muatDBTempatan: muatDBTempatan, muatSemula: muatSemula, pergi: pergi, papar: papar, genId: genId,

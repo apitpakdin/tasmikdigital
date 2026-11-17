@@ -69,7 +69,7 @@ var TasmikCore = (function () {
   var CONFIG_KUNCI = {
     namaSekolah: PENTADBIR, kodSekolah: ['superadmin'], alamat: PENTADBIR, logo: PENTADBIR,
     namaGB: PENTADBIR, jawatanGB: PENTADBIR, modulKBS: PENTADBIR, alertDays: PENTADBIR, iqraBaru: PENTADBIR,
-    iqraLama: PENTADBIR, senaraiKelas: PENTADBIR, tahunSemasa: ['superadmin']
+    iqraLama: PENTADBIR, senaraiKelas: PENTADBIR, tahunSemasa: ['superadmin'], sasaranKhatam: PENTADBIR
   };
 
   var SESI_HARI = 3650;        // "ingat saya": kekal sehingga log keluar / log masuk akaun lain / kata laluan ditukar
@@ -631,9 +631,19 @@ var TasmikCore = (function () {
         return g.status !== 'Tamat' && g.peranan === 'guru' && senaraiKelasGuru(g).some(function (k) { return k.darjah === normalDarjah(m.darjah) && k.kelas === normalKelas(m.kelas); });
       }).map(function (g) { return g.nama; });
       var c = env.store.config();
+      // Ringkasan 3 bulan terakhir (agregat sahaja — tiada catatan guru)
+      var kini = new Date(), bulanan = [];
+      for (var i = 2; i >= 0; i--) {
+        var mb = new Date(kini.getFullYear(), kini.getMonth() - i, 1), ma = new Date(kini.getFullYear(), kini.getMonth() - i + 1, 1);
+        var rb = rekod.filter(function (r) { var d = new Date(r.tarikh); return d >= mb && d < ma; });
+        bulanan.push({ tahun: mb.getFullYear(), bulan: mb.getMonth(), sesi: rb.length,
+          ms: rb.reduce(function (s, r) { return s + (parseInt(r.jumlah, 10) || 0); }, 0),
+          cemerlang: rb.filter(function (r) { return String(r.kualiti || '').indexOf('Cemerlang') === 0; }).length });
+      }
       return {
         ok: true,
         sekolah: { nama: c.namaSekolah || '', logo: c.logo || '' },
+        bulanan: bulanan,
         murid: {
           nama: m.nama, darjah: m.darjah, kelas: m.kelas, jenis: m.jenis, peringkat: m.peringkat,
           iqraLabel: m.iqraLabel, mukaSurat: m.mukaSurat, bilKhatam: m.bilKhatam || 0,

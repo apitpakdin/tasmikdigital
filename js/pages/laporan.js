@@ -150,7 +150,13 @@
     var tahunList = []; for (var y = kini.getFullYear(); y >= kini.getFullYear() - 4; y--) tahunList.push(y);
     var bolehPadam = st.tab === 'rekod' && App.bolehTulis();
 
-    el.innerHTML = '<div class="tab tab-gulung" role="tablist">' + tabs.map(function (t) { return '<button role="tab" data-tab="' + t.id + '" aria-selected="' + (st.tab === t.id) + '">' + esc(t.label) + '</button>'; }).join('') + '</div>' +
+    var bolehLGB = App.lihatSemua();
+    el.innerHTML = (bolehLGB ? '<section class="kad lgb-kad"><div class="alat"><div><h2>' + ikon('file') + ' Laporan Bulanan Sekolah</h2>' +
+        '<p class="lembut kecil">Satu halaman A4 untuk Guru Besar / mesyuarat panitia: liputan setiap kelas, naik peringkat, khatam, guru paling aktif.</p></div><span class="ruang"></span>' +
+        '<select id="lgbBulan" aria-label="Bulan laporan bulanan">' + D.BULAN_PENUH.map(function (b, i) { return '<option value="' + i + '"' + (i === st.bulan ? ' selected' : '') + '>' + b + '</option>'; }).join('') + '</select>' +
+        '<select id="lgbTahun" aria-label="Tahun laporan bulanan">' + tahunList.map(function (y) { return '<option' + (y === st.tahun ? ' selected' : '') + '>' + y + '</option>'; }).join('') + '</select>' +
+        '<button class="btn btn-utama" id="lgbCetak">' + ikon('printer') + ' Cetak / PDF</button></div></section>' : '') +
+      '<div class="tab tab-gulung" role="tablist">' + tabs.map(function (t) { return '<button role="tab" data-tab="' + t.id + '" aria-selected="' + (st.tab === t.id) + '">' + esc(t.label) + '</button>'; }).join('') + '</div>' +
       '<section class="kad"><div class="alat">' +
       '<div><h2>' + esc(lap.tajuk) + '</h2><p class="lembut kecil">' + esc(lap.sub) + ' · ' + lap.rows.length + ' baris</p></div><span class="ruang"></span>' +
       (perluBulan ? '<select id="lBulan" aria-label="Bulan">' + D.BULAN_PENUH.map(function (b, i) { return '<option value="' + i + '"' + (i === st.bulan ? ' selected' : '') + '>' + b + '</option>'; }).join('') + '</select>' : '') +
@@ -172,6 +178,9 @@
     var lb = UI.$('#lBulan'); if (lb) lb.addEventListener('change', function () { st.bulan = parseInt(this.value, 10); papar(el); });
     var lt = UI.$('#lTahun'); if (lt) lt.addEventListener('change', function () { st.tahun = parseInt(this.value, 10); papar(el); });
     UI.$('#lCetak').addEventListener('click', function () { Cetak.laporan(lap); });
+    var lg = UI.$('#lgbCetak'); if (lg) lg.addEventListener('click', function () {
+      LaporanGB.cetak(parseInt(UI.$('#lgbBulan').value, 10), parseInt(UI.$('#lgbTahun').value, 10));
+    });
     UI.$('#lExcel').addEventListener('click', function () {
       Cetak.excel(lap.tajuk.replace(/[^\w]+/g, '_') + '_' + (App.DB.config.namaSekolah || '').replace(/[^\w]+/g, '_') + '.xlsx', [{ nama: lap.tajuk, headers: lap.headers, rows: lap.rows }]);
     });

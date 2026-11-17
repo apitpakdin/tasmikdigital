@@ -23,7 +23,7 @@
     var amaran = murid.map(function (m) { var r = App.rekodAkhir(m.id); return { m: m, n: r ? UI.hariLalu(r.tarikh) : 999 }; })
       .filter(function (x) { return x.n > hari; }).sort(function (a, b) { return b.n - a.n; });
     var minggu = hariSekolah(5);
-    var mulaMinggu = new Date(minggu[0]); mulaMinggu.setHours(0, 0, 0, 0);
+    var mulaMinggu = App.mulaMinggu();
     var unikMinggu = {}; rekod.forEach(function (r) { if (new Date(r.tarikh) >= mulaMinggu) unikMinggu[r.muridId] = 1; });
     var liputan = murid.length ? Math.round(Object.keys(unikMinggu).length / murid.length * 100) : 0;
     var tahun = kini.getFullYear();
@@ -41,6 +41,23 @@
     var nSemak = App.bolehTulis() && window.SemakPeringkat ? SemakPeringkat.bilangan() : 0;
     if (nSemak) html += '<div class="amaran-kotak warn">' + ikon('alert') + '<div><b>' + nSemak + ' murid perlu pengesahan peringkat bacaan</b>' +
       '<p>Data dari sistem lama bercanggah (cth jenis "Al-Quran" tetapi peringkat Iqra). <button class="pautan" id="keSemakP">Semak sekarang ' + ikon('chevR') + '</button></p></div></div>';
+
+    // Peringatan guru (Rabu–Jumaat): murid kelasnya yang belum ditasmik sejak Isnin
+    var hariKini = kini.getDay();
+    if (App.ialah('guru') && hariKini >= 3 && hariKini <= 5) {
+      var belum = murid.filter(function (m) { return !unikMinggu[m.id]; });
+      if (belum.length) {
+        var ikutKelas = {};
+        belum.forEach(function (m) { var k = m.darjah + '|' + m.kelas; (ikutKelas[k] = ikutKelas[k] || []).push(m); });
+        html += '<section class="kad belum-tasmik"><div class="kad-kepala"><h2>' + ikon('bell') + ' ' + belum.length + ' murid belum ditasmik minggu ini</h2></div><div class="kad-badan">' +
+          '<p class="lembut kecil">' + (hariKini === 5 ? 'Hari terakhir minggu ini.' : 'Masih ada ' + (5 - hariKini + 1) + ' hari persekolahan minggu ini.') + ' Tekan nama untuk terus merekod.</p>' +
+          Object.keys(ikutKelas).sort().map(function (k) {
+            return '<div class="bt-kelas"><b>' + esc(App.labelKelas(k)) + '</b><div class="bt-nama">' + ikutKelas[k].sort(function (a, b) { return a.nama < b.nama ? -1 : 1; }).map(function (m) {
+              return '<a class="cip" href="#/rekod/' + esc(m.id) + '">' + esc(UI.namaPendek(m.nama)) + '</a>';
+            }).join('') + '</div></div>';
+          }).join('') + '</div></section>';
+      }
+    }
 
     html += '<section class="kpi">' +
       kpi('users', murid.length, 'Murid aktif', '') +

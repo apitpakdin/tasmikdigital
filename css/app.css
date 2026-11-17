@@ -699,3 +699,60 @@ body.ada-modal { overflow: hidden; }
   .analisis-mingguan col.c-kelas { width: 28%; }
   .analisis-mingguan col.c-n { width: 18%; }
 }
+
+/* Peringatan guru: belum ditasmik minggu ini */
+.belum-tasmik { border-left: 4px solid var(--emas); }
+.belum-tasmik h2 { display: flex; align-items: center; gap: 8px; }
+.bt-kelas { margin-top: 10px; }
+.bt-kelas > b { display: block; font-size: .8rem; color: var(--lembut); margin-bottom: 6px; }
+.bt-nama { display: flex; flex-wrap: wrap; gap: 6px; }
+.cip { display: inline-block; padding: 6px 12px; border-radius: 999px; background: var(--pri-lembut); color: var(--pri-teks);
+  font-weight: 600; font-size: .82rem; text-decoration: none; border: 1px solid transparent; }
+.cip:hover, .cip:focus-visible { border-color: currentColor; }
+
+/* Laporan Bulanan Sekolah (1 halaman A4) */
+.lgb-kad .alat { align-items: center; }
+@media print {
+  .lgb { font-size: 9.5pt; }
+  .lgb .kop { margin-bottom: 8px; padding-bottom: 8px; }
+  .lgb .tajuk-laporan { margin: 4px 0 0; }
+  .lgb .sub-laporan { margin: 0 0 8px; font-weight: 700; letter-spacing: .06em; }
+  .lgb h3 { font-size: 10.5pt; color: #0b5d4b; margin: 10px 0 4px; }
+  .lgb ul { margin: 0; padding-left: 18px; }
+  .lgb li { margin-bottom: 2px; }
+  .lgb .lgb-nama { list-style: none; margin-left: -18px; font-size: 8.5pt; color: #333; }
+  .lgb .jadual-cetak { font-size: 8.5pt; }
+  .lgb .jadual-cetak th, .lgb .jadual-cetak td { padding: 3px 5px; }
+  .lgb-kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin: 4px 0 6px; }
+  .lgb-kpi { border: 1px solid #9bbfb2; border-radius: 6px; padding: 6px 4px; text-align: center; background: #f2f8f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .lgb-kpi b { display: block; font-size: 15pt; color: #0b5d4b; line-height: 1.1; }
+  .lgb-kpi span { font-size: 7.5pt; color: #333; }
+  .lgb-jumlah td { font-weight: 700; background: #f2f8f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .lgb-dua { display: grid; grid-template-columns: 1.1fr 1fr; gap: 16px; }
+  .lgb .tandatangan { margin-top: 18px; }
+  .lgb .tandatangan .garis { height: 34px; }
+}
+
+/* Sasaran Khatam Tahun 6 */
+.sasaran-khatam .cip-baris { margin: 4px 0 10px; }
+.medan.sebaris { display: flex; align-items: center; gap: 8px; margin: 0; }
+.medan.sebaris span { margin: 0; white-space: nowrap; font-size: .82rem; }
+.medan.sebaris input { width: auto; }
+@media (max-width: 899px) {
+  .jadual.responsif td.nombor { text-align: left; }
+  .sasaran-khatam .jadual.responsif td { padding: 2px 0; }
+}
+
+/* Ibu bapa: graf 3 bulan & galakan */
+.ib-graf { margin: 16px 0 8px; }
+.ib-graf > small { display: block; color: var(--lembut); font-weight: 600; margin-bottom: 8px; }
+.ib-graf-baris { display: flex; gap: 14px; align-items: flex-end; height: 150px; }
+.ib-graf-lajur { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 4px; min-width: 0; }
+.ib-graf-lajur span { width: 100%; max-width: 56px; border-radius: 8px 8px 3px 3px; background: var(--pri-lembut); }
+.ib-graf-lajur.kini span { background: linear-gradient(180deg, var(--pri), var(--pri-tekan)); }
+.ib-graf-lajur b { font-size: .78rem; color: var(--teks); white-space: nowrap; }
+.ib-graf-lajur i { font-style: normal; font-weight: 700; font-size: .82rem; }
+.ib-graf-lajur em { font-style: normal; font-size: .72rem; color: var(--lembut); }
+.ib-galakan { display: flex; gap: 10px; align-items: flex-start; background: var(--emas-lembut); color: var(--emas-teks); border-radius: 14px; padding: 12px 14px; margin: 12px 0; }
+.ib-galakan p { margin: 0; line-height: 1.5; }
+.ib-galakan svg { flex: none; margin-top: 2px; }

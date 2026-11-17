@@ -35,10 +35,36 @@ var IbuBapa = (function () {
         '<div><small>Penilaian terakhir</small><b class="ton-' + (q ? q.ton : 'muted') + '">' + esc(q ? q.label : '—') + '</b>' + (q ? '<span class="bintang" aria-label="' + q.bintang + ' bintang">' + [1, 2, 3].map(function (i) { return '<i class="' + (i <= q.bintang ? 'on' : '') + '">' + ikon('star') + '</i>'; }).join('') + '</span>' : '') + '</div>' +
         '<div><small>Khatam Al-Quran</small><b>' + (m.bilKhatam > 0 ? m.bilKhatam + ' kali' : 'Belum') + '</b></div>' +
         '</div>' +
+        (r.bulanan ? kemajuan3Bulan(r.bulanan) : '') +
+        galakan(m, k, t, q, r.bulanan) +
         '<p class="ib-nota">' + ikon('info') + ' Maklumat ini dikemas kini setiap kali guru merekod tasmik. Untuk pertanyaan, sila hubungi guru kelas.</p>' +
         '<details class="ib-privasi"><summary>Notis privasi</summary><p>Data diurus oleh ' + esc(r.sekolah.nama) + ' semata-mata untuk pemantauan bacaan Al-Quran murid. Halaman ini hanya memaparkan prestasi semasa seorang murid dan tidak menyimpan sebarang maklumat ibu bapa. Jika slip QR hilang atau tersebar, minta guru menjana kod baharu.</p></details>';
     });
   }
 
-  return { papar: papar };
+  /* Graf 3 bulan: muka surat dibaca & sesi */
+  function kemajuan3Bulan(b) {
+    var mx = Math.max.apply(null, b.map(function (x) { return x.ms; }).concat([1]));
+    return '<div class="ib-graf"><small>Bacaan 3 bulan terakhir</small><div class="ib-graf-baris">' + b.map(function (x, i) {
+      return '<div class="ib-graf-lajur' + (i === b.length - 1 ? ' kini' : '') + '"><b>' + x.ms + ' m/s</b><span style="height:' + Math.max(4, Math.round(x.ms / mx * 100)) + '%"></span>' +
+        '<i>' + esc(D.BULAN[x.bulan]) + '</i><em>' + x.sesi + ' sesi</em></div>';
+    }).join('') + '</div></div>';
+  }
+
+  /* Ayat galakan automatik — positif, tanpa menyalahkan */
+  function galakan(m, k, t, q, b) {
+    var nama = UI.tajukNama(UI.namaPanggilan(m.nama));
+    var ayat;
+    var hari = t ? UI.hariLalu(t.tarikh) : 999;
+    var ini = b && b[2] ? b[2].ms : 0, lalu = b && b[1] ? b[1].ms : 0;
+    if (k.fasa === 'Khatam') ayat = 'Tahniah! ' + nama + ' telah khatam Al-Quran. Teruskan membaca setiap hari supaya bacaan kekal lancar.';
+    else if (hari > 14) ayat = nama + ' belum ditasmik sejak ' + (hari >= 999 ? 'awal' : hari + ' hari lalu') + '. Galakkan ' + nama + ' membaca sekurang-kurangnya satu muka surat sehari di rumah, dan berjumpa guru untuk tasmik minggu ini.';
+    else if (q && q.bintang === 3 && ini >= lalu && ini > 0) ayat = 'MasyaAllah, bacaan ' + nama + ' semakin baik! Penilaian terakhir Cemerlang dan bacaan bulan ini ' + (ini > lalu ? 'meningkat' : 'konsisten') + '. Teruskan sokongan di rumah.';
+    else if (ini > lalu && lalu > 0) ayat = 'Bagus! ' + nama + ' membaca lebih banyak bulan ini (' + ini + ' m/s) berbanding bulan lalu (' + lalu + ' m/s). Puji usahanya supaya terus bersemangat.';
+    else if (q && q.bintang <= 1) ayat = nama + ' sedang berusaha memperbaiki bacaan. Bantu ' + nama + ' mengulang muka surat terakhir di rumah — 10 minit sehari sudah memadai.';
+    else ayat = nama + ' sedang membaca ' + k.label + '. Sedikit bacaan setiap hari di rumah akan membantu ' + nama + ' maju dengan lebih cepat.';
+    return '<div class="ib-galakan">' + ikon('star') + '<p>' + esc(ayat) + '</p></div>';
+  }
+
+  return { papar: papar, galakan: galakan };
 })();

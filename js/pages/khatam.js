@@ -14,6 +14,8 @@
     var html = '<section class="kad hero-emas"><div class="hero-isi">' + ikon('trophy', 'besar') +
       '<div><h1>Rekod Khatam Al-Quran</h1><p>' + senarai.filter(function (k) { return Number(k.tahun) === tahun; }).length + ' khatam tahun ' + tahun + ' · ' + senarai.length + ' keseluruhan</p></div></div></section>';
 
+    html += SasaranKhatam.kad(murid);
+
     if (App.bolehTulis()) {
       html += '<section class="kad"><div class="kad-kepala"><h2>Sahkan khatam</h2></div><div class="kad-badan">' +
         (calon.length ? '<form id="fKhatam" class="borang">' +
@@ -52,6 +54,7 @@
         }).join('') + '</tbody></table></div></section>';
     }).join('') : '<section class="kad">' + UI.kosong('trophy', 'Belum ada rekod khatam', stTahun ? 'Tiada khatam direkodkan pada ' + stTahun + '.' : 'Murid yang khatam akan disenaraikan di sini mengikut kelas.') + '</section>';
     el.innerHTML = html;
+    SasaranKhatam.pasang(el, murid, function () { papar(el); });
 
     UI.$$('[data-ke]', el).forEach(function (b) { b.addEventListener('click', function () { var t = document.getElementById(b.dataset.ke); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }); });
     UI.$('#ktTahun').addEventListener('change', function () { stTahun = this.value; papar(el); });
