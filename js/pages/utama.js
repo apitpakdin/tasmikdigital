@@ -84,19 +84,20 @@
 
     html += '<div class="grid-2">' + kad('Analisis Peringkat Bacaan Murid', taburan) + kad('Perlu perhatian', senaraiAmaran) + '</div>';
 
-    // Prestasi kelas (pentadbir & GB)
-    if (App.lihatSemua() && !App.skop) {
-      var kelas = App.semuaKelas();
+    // Analisis Tasmik Mingguan: pentadbir & GB (semua kelas); guru yang mengajar 2 kelas atau lebih (kelasnya sahaja)
+    var kelasAnalisis = App.lihatSemua() ? App.semuaKelas() : App.kelasSaya();
+    if (!App.skop && (App.lihatSemua() || kelasAnalisis.length >= 2)) {
+      var kelas = kelasAnalisis;
+      var u = {}; DB.rekod.forEach(function (r) { if (new Date(r.tarikh) >= mulaMinggu) u[r.muridId] = 1; });
       var baris = kelas.map(function (k) {
         var ms = DB.murid.filter(function (m) { return m.status === 'Aktif' && m.darjah + '|' + m.kelas === k; });
-        var u = {}; DB.rekod.forEach(function (r) { if (new Date(r.tarikh) >= mulaMinggu) u[r.muridId] = 1; });
         var aktif = ms.filter(function (m) { return u[m.id]; }).length;
         var pc = ms.length ? Math.round(aktif / ms.length * 100) : 0;
         var quran = ms.filter(function (m) { return m.peringkat === 'Al-Quran' || m.peringkat === 'Khatam'; }).length;
         return '<tr><td><b><span class="pjg">' + esc(App.labelKelasPenuh(k)) + '</span><span class="pdk">' + esc(App.labelKelas(k)) + '</span></b></td><td class="nombor">' + ms.length + '</td><td class="nombor">' + quran + '</td>' +
           '<td><div class="sel-bar">' + UI.bar(pc, pc < 50 ? 'warn' : '') + '<span>' + pc + '%</span></div></td></tr>';
       }).join('');
-      html += kad('Analisis Tasmik Mingguan', baris ? '<p class="lembut kecil">Peratus murid setiap kelas yang telah ditasmik sejak Isnin minggu ini.</p>' +
+      html += kad('Analisis Tasmik Mingguan', baris ? '<p class="lembut kecil">Peratus murid setiap kelas' + (App.lihatSemua() ? '' : ' yang anda ajar') + ' yang telah ditasmik sejak Isnin minggu ini.</p>' +
         '<table class="jadual analisis-mingguan"><colgroup><col class="c-kelas"><col class="c-n"><col class="c-n"><col class="c-liputan"></colgroup>' +
         '<thead><tr><th>Kelas</th><th class="nombor">Murid</th><th class="nombor"><span class="pjg">Al-Quran</span><span class="pdk">Quran</span></th><th>Liputan</th></tr></thead><tbody>' + baris + '</tbody></table>' : UI.kosong('users', 'Belum ada kelas'));
     }

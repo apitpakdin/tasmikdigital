@@ -1,11 +1,11 @@
 /* Tasmik Digital — service worker (offline) */
-var VERSI = 'td-3.5.2';
-var SHELL = ['./', 'index.html', 'manifest.json', 'css/app.css?v=3.5.2', 'icons/icon-192.png', 'icons/icon-512.png',
-  'js/tasmik-core.js?v=3.5.2', 'js/store-memori.js?v=3.5.2', 'js/data.js?v=3.5.2', 'js/ui.js?v=3.5.2', 'js/demo.js?v=3.5.2',
-  'js/api.js?v=3.5.2', 'js/app.js?v=3.5.2', 'js/cetak.js?v=3.5.2', 'js/shell.js?v=3.5.2', 'js/ibubapa.js?v=3.5.2', 'js/transkrip.js?v=3.5.2', 'js/berganda.js?v=3.5.2', 'js/semakperingkat.js?v=3.5.2',
-  'js/pages/utama.js?v=3.5.2', 'js/pages/rekod.js?v=3.5.2', 'js/pages/khatam.js?v=3.5.2', 'js/pages/kbs.js?v=3.5.2',
-  'js/pages/amaran.js?v=3.5.2', 'js/pages/murid.js?v=3.5.2', 'js/pages/guru.js?v=3.5.2', 'js/pages/laporan.js?v=3.5.2',
-  'js/pages/data.js?v=3.5.2', 'js/pages/tahun.js?v=3.5.2', 'js/pages/tetapan.js?v=3.5.2', 'js/main.js?v=3.5.2',
+var VERSI = 'td-3.5.3';
+var SHELL = ['./', 'index.html', 'manifest.json', 'css/app.css?v=3.5.3', 'icons/icon-192.png', 'icons/icon-512.png',
+  'js/tasmik-core.js?v=3.5.3', 'js/store-memori.js?v=3.5.3', 'js/data.js?v=3.5.3', 'js/ui.js?v=3.5.3', 'js/demo.js?v=3.5.3',
+  'js/api.js?v=3.5.3', 'js/app.js?v=3.5.3', 'js/cetak.js?v=3.5.3', 'js/shell.js?v=3.5.3', 'js/ibubapa.js?v=3.5.3', 'js/transkrip.js?v=3.5.3', 'js/berganda.js?v=3.5.3', 'js/semakperingkat.js?v=3.5.3',
+  'js/pages/utama.js?v=3.5.3', 'js/pages/rekod.js?v=3.5.3', 'js/pages/khatam.js?v=3.5.3', 'js/pages/kbs.js?v=3.5.3',
+  'js/pages/amaran.js?v=3.5.3', 'js/pages/murid.js?v=3.5.3', 'js/pages/guru.js?v=3.5.3', 'js/pages/laporan.js?v=3.5.3',
+  'js/pages/data.js?v=3.5.3', 'js/pages/tahun.js?v=3.5.3', 'js/pages/tetapan.js?v=3.5.3', 'js/main.js?v=3.5.3',
   'vendor/qrcode.js'];
 
 self.addEventListener('install', function (e) {
