@@ -90,6 +90,11 @@ h2.tajuk { font-weight: 900; font-size: 84px; line-height: 1.02; letter-spacing:
 .hg-isi li { position: relative; padding-left: 50px; font-weight: 600; font-size: 38px; line-height: 1.25; margin-bottom: 16px; }
 .hg-isi li::before { content: ""; position: absolute; left: 0; top: 12px; width: 24px; height: 24px; border-radius: 7px; background: #f4c34d; }
 .harga:not(.utama) .hg-isi li::before { background: #0b5d4b; }
+.kiri.sempit { width: 800px; }
+.a4 { position: absolute; height: 900px; width: auto; border-radius: 6px; box-shadow: 0 26px 60px rgba(0,0,0,.2); z-index: 2; background: #fff; }
+.a4.belakang { left: 1090px; top: 50px; transform: rotate(3deg); z-index: 1; opacity: .95; }
+.a4.depan { left: 990px; top: 120px; transform: rotate(-1.5deg); }
+.a4.tunggal { left: 1010px; top: 70px; height: 940px; }
 
 </style>
 </head>
@@ -143,6 +148,14 @@ h2.tajuk { font-weight: 900; font-size: 84px; line-height: 1.02; letter-spacing:
       "notes": "Satu halaman A4: KPI, prestasi kelas, naik peringkat, khatam, guru paling aktif, perkara perlu perhatian. Sedia ditandatangan."
     },
     {
+      "sceneId": "transkrip",
+      "notes": "Transkrip rasmi dua muka surat A4 untuk setiap murid. Halaman 1: status bacaan, sejarah peringkat Iqra hingga Al-Quran, khatam dan sesi tasmik terakhir. Sesuai untuk murid berpindah atau tamat Tahun 6. Contoh ini menggunakan data DEMO."
+    },
+    {
+      "sceneId": "transkrip-kbs",
+      "notes": "Halaman 2 transkrip: Kem Bestari Solat (KBS). Setiap item amali wuduk dan solat ditanda M (menguasai) atau BM (belum menguasai) mengikut tahap murid, dengan ringkasan peratus dikuasai. Diikuti ulasan guru dan tandatangan Guru Besar."
+    },
+    {
       "sceneId": "khatam",
       "notes": "Murid Tahun 6 yang belum khatam: berapa muka surat seminggu perlu dibaca untuk khatam sebelum tarikh sasaran. Status: Atas landasan / Perlu dipercepat / Berisiko."
     },
@@ -186,7 +199,7 @@ h2.tajuk { font-weight: 900; font-size: 84px; line-height: 1.02; letter-spacing:
   ]
 }
 </script>
-<div id="root" data-composition-id="root" data-start="0" data-duration="69.8" data-width="1920" data-height="1080">
+<div id="root" data-composition-id="root" data-start="0" data-duration="77.8" data-width="1920" data-height="1080">
 <div id="tajuk" class="slaid" data-composition-id="tajuk" data-start="0" data-duration="4" data-label="Tajuk" data-width="1920" data-height="1080">
   <div class="kiri tengah-v">
       <div class="jubin">TD</div>
@@ -247,7 +260,24 @@ h2.tajuk { font-weight: 900; font-size: 84px; line-height: 1.02; letter-spacing:
     <img class="kertas" id="laporan-kertas" src="assets/laporan-a4.png" alt="Contoh Laporan Bulanan A4">
   <div class="kaki"><span>Tasmik Digital</span></div>
 </div>
-<div id="khatam" class="slaid" data-composition-id="khatam" data-start="35.8" data-duration="4" data-label="Sasaran Khatam" data-width="1920" data-height="1080">
+<div id="transkrip" class="slaid" data-composition-id="transkrip" data-start="35.8" data-duration="4" data-label="Transkrip Murid" data-width="1920" data-height="1080">
+  <div class="kiri sempit">
+      <h2 class="tajuk">Transkrip lengkap<br>setiap murid</h2>
+      <ul class="titik"><li>Tahap bacaan &amp; kemajuan Iqra hingga Al-Quran</li><li>Rekod khatam &amp; sesi tasmik terakhir</li><li>Bacaan + Kem Bestari Solat dalam satu dokumen</li><li>Sedia dicetak untuk murid berpindah atau tamat sekolah</li></ul>
+    </div>
+    <img class="a4 belakang" id="transkrip-h2" src="assets/transkrip-hal2.png" alt="Transkrip halaman 2">
+    <img class="a4 depan" id="transkrip-h1" src="assets/transkrip-hal1.png" alt="Contoh transkrip murid halaman 1">
+  <div class="kaki"><span>Tasmik Digital</span></div>
+</div>
+<div id="transkrip-kbs" class="slaid" data-composition-id="transkrip-kbs" data-start="39.8" data-duration="4" data-label="Transkrip KBS" data-width="1920" data-height="1080">
+  <div class="kiri sempit">
+      <h2 class="tajuk">Kem Bestari Solat<br>dalam transkrip</h2>
+      <ul class="titik"><li>Amali Wuduk &amp; Solat mengikut tahap murid</li><li>Setiap item: <span class="lencana ok">M</span> menguasai, <span class="lencana bad">BM</span> belum</li><li>Ringkasan peratus item dikuasai</li><li>Ulasan guru &amp; tandatangan Guru Besar</li></ul>
+    </div>
+    <img class="a4 tunggal" id="kbs-h2" src="assets/transkrip-hal2.png" alt="Contoh transkrip halaman 2: Kem Bestari Solat">
+  <div class="kaki"><span>Tasmik Digital</span></div>
+</div>
+<div id="khatam" class="slaid" data-composition-id="khatam" data-start="43.8" data-duration="4" data-label="Sasaran Khatam" data-width="1920" data-height="1080">
   <div class="kiri">
       <h2 class="tajuk">Sasaran Khatam<br>Tahun 6</h2>
       <ul class="titik"><li>Baki muka surat setiap murid</li><li>Muka surat seminggu yang perlu dibaca</li><li>Status: <span class="lencana ok">Atas landasan</span> <span class="lencana warn">Perlu dipercepat</span> <span class="lencana bad">Berisiko</span></li></ul>
@@ -255,7 +285,7 @@ h2.tajuk { font-weight: 900; font-size: 84px; line-height: 1.02; letter-spacing:
     <div class="fon" id="khatam-fon"><div class="skrin"><img class="vid" src="assets/skrin-khatam.png" alt="Sasaran Khatam Tahun 6"></div></div>
   <div class="kaki"><span>Tasmik Digital</span></div>
 </div>
-<div id="ibubapa" class="slaid" data-composition-id="ibubapa" data-start="39.8" data-duration="6" data-label="Ibu bapa" data-width="1920" data-height="1080">
+<div id="ibubapa" class="slaid" data-composition-id="ibubapa" data-start="47.8" data-duration="6" data-label="Ibu bapa" data-width="1920" data-height="1080">
   <div class="kiri">
       <h2 class="tajuk">Ibu bapa tahu<br>kemajuan anak</h2>
       <ul class="titik"><li>Akses dengan kod — tanpa log masuk</li><li>Graf bacaan 3 bulan</li><li>Kata galakan automatik</li></ul>
@@ -263,7 +293,7 @@ h2.tajuk { font-weight: 900; font-size: 84px; line-height: 1.02; letter-spacing:
     <div class="fon" id="ibubapa-fon"><div class="skrin"><video id="ibubapa-vid" class="clip vid" data-start="0" data-duration="5.6" data-media-start="0.2" muted playsinline src="assets/klip-ibubapa.mp4"></video></div></div>
   <div class="kaki"><span>Tasmik Digital</span></div>
 </div>
-<div id="data" class="slaid" data-composition-id="data" data-start="45.8" data-duration="4" data-label="Keselamatan data" data-width="1920" data-height="1080">
+<div id="data" class="slaid" data-composition-id="data" data-start="53.8" data-duration="4" data-label="Keselamatan data" data-width="1920" data-height="1080">
   <div class="penuh tengah-v">
       <h2 class="tajuk">Data kekal milik sekolah</h2>
       <div class="grid-dua">
@@ -274,7 +304,7 @@ h2.tajuk { font-weight: 900; font-size: 84px; line-height: 1.02; letter-spacing:
       </div></div>
   <div class="kaki"><span>Tasmik Digital</span></div>
 </div>
-<div id="pasang" class="slaid" data-composition-id="pasang" data-start="49.8" data-duration="4" data-label="Pemasangan" data-width="1920" data-height="1080">
+<div id="pasang" class="slaid" data-composition-id="pasang" data-start="57.8" data-duration="4" data-label="Pemasangan" data-width="1920" data-height="1080">
   <div class="penuh tengah-v">
       <h2 class="tajuk">Bagaimana bermula</h2>
       <ol class="aliran">
@@ -284,7 +314,7 @@ h2.tajuk { font-weight: 900; font-size: 84px; line-height: 1.02; letter-spacing:
       </ol></div>
   <div class="kaki"><span>Tasmik Digital</span></div>
 </div>
-<div id="harga" class="slaid" data-composition-id="harga" data-start="53.8" data-duration="4" data-label="Harga" data-width="1920" data-height="1080">
+<div id="harga" class="slaid" data-composition-id="harga" data-start="61.8" data-duration="4" data-label="Harga" data-width="1920" data-height="1080">
   <div class="penuh tengah-v">
       <h2 class="tajuk">Harga langganan</h2>
       <div class="harga-dua">
@@ -293,7 +323,7 @@ h2.tajuk { font-weight: 900; font-size: 84px; line-height: 1.02; letter-spacing:
       </div></div>
   <div class="kaki"><span>Tasmik Digital</span></div>
 </div>
-<div id="langganan" class="slaid" data-composition-id="langganan" data-start="57.8" data-duration="4" data-label="Langganan tahunan" data-width="1920" data-height="1080">
+<div id="langganan" class="slaid" data-composition-id="langganan" data-start="65.8" data-duration="4" data-label="Langganan tahunan" data-width="1920" data-height="1080">
   <div class="penuh tengah-v">
       <h2 class="tajuk">Setiap tahun langganan merangkumi</h2>
       <div class="grid-dua sub-grid">
@@ -305,7 +335,7 @@ h2.tajuk { font-weight: 900; font-size: 84px; line-height: 1.02; letter-spacing:
       </div></div>
   <div class="kaki"><span>Tasmik Digital</span></div>
 </div>
-<div id="hubungi" class="slaid" data-composition-id="hubungi" data-start="61.8" data-duration="4" data-label="Hubungi" data-width="1920" data-height="1080">
+<div id="hubungi" class="slaid" data-composition-id="hubungi" data-start="69.8" data-duration="4" data-label="Hubungi" data-width="1920" data-height="1080">
   <div class="kiri tengah-v">
       <h2 class="tajuk">Berminat?<br>Hubungi kami</h2>
       <div class="telegram"><span class="tg"><svg viewBox="0 0 24 24" width="64" height="64"><path fill="#fff" d="M21.5 3.6 2.9 10.8c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.1.9.8.9.5 0 .7-.2 1-.5l2.3-2.3 4.9 3.6c.9.5 1.5.2 1.8-.8l3.2-15.1c.3-1.3-.5-1.9-1.8-1.3zM8.3 13.6l10.6-6.7c.5-.3 1-.1.6.2l-9 8.2-.4 3.8-1.8-5.5z"/></svg></span><div><small>Telegram</small><b>@Hafiz_0391</b></div></div>
@@ -314,7 +344,7 @@ h2.tajuk { font-weight: 900; font-size: 84px; line-height: 1.02; letter-spacing:
     <div class="qr"><img src="assets/qr-telegram.png" alt="Kod QR Telegram @Hafiz_0391"><small>Imbas dengan kamera telefon</small></div>
   <div class="kaki"><span>Tasmik Digital</span></div>
 </div>
-<div id="lompat" class="slaid" data-composition-id="lompat" data-start="65.8" data-duration="4" data-label="Kesan lompat muka surat" data-width="1920" data-height="1080">
+<div id="lompat" class="slaid" data-composition-id="lompat" data-start="73.8" data-duration="4" data-label="Kesan lompat muka surat" data-width="1920" data-height="1080">
   <div class="kiri">
       <h2 class="tajuk">Tiada lagi<br>"tersalah tempat"</h2>
       <ul class="titik"><li><span class="lencana warn">lompat m/s</span> ditanda automatik</li><li>Amaran jika muka surat tidak bersambung</li><li>Guru semak sebelum menyimpan</li></ul>
@@ -347,6 +377,12 @@ window.__timelines["gb"] = tl; })();
 (function () { const tl = gsap.timeline({ paused: true });
 tl.fromTo("#laporan .titik li", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.2);tl.fromTo("#laporan-kertas", { opacity: 0, y: 80 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.3);
 window.__timelines["laporan"] = tl; })();
+(function () { const tl = gsap.timeline({ paused: true });
+tl.fromTo("#transkrip .titik li", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.2);tl.fromTo("#transkrip-h2", { opacity: 0, y: 80 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.25);tl.fromTo("#transkrip-h1", { opacity: 0, y: 80 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.4);
+window.__timelines["transkrip"] = tl; })();
+(function () { const tl = gsap.timeline({ paused: true });
+tl.fromTo("#transkrip-kbs .titik li", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.2);tl.fromTo("#kbs-h2", { opacity: 0, y: 80 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.3);
+window.__timelines["transkrip-kbs"] = tl; })();
 (function () { const tl = gsap.timeline({ paused: true });
 tl.fromTo("#khatam .titik li", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.2);
 window.__timelines["khatam"] = tl; })();
