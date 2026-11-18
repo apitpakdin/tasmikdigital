@@ -86,6 +86,10 @@ h2.tajuk { font-weight: 900; font-size: 84px; line-height: 1.02; letter-spacing:
 .sub-grid .kotak.lebar { grid-column: span 2; }
 .sub-grid .kotak h3 { font-size: 42px; }
 .sub-grid .kotak p { font-size: 36px; }
+.hg-isi { list-style: none; }
+.hg-isi li { position: relative; padding-left: 50px; font-weight: 600; font-size: 38px; line-height: 1.25; margin-bottom: 16px; }
+.hg-isi li::before { content: ""; position: absolute; left: 0; top: 12px; width: 24px; height: 24px; border-radius: 7px; background: #f4c34d; }
+.harga:not(.utama) .hg-isi li::before { background: #0b5d4b; }
 
 </style>
 </head>
@@ -157,7 +161,7 @@ h2.tajuk { font-weight: 900; font-size: 84px; line-height: 1.02; letter-spacing:
     },
     {
       "sceneId": "harga",
-      "notes": "RM200 pakej. RM50 setahun untuk kemas kini sistem dan data, serta sokongan."
+      "notes": "RM200 untuk pakej permulaan: kami pasang sistem lengkap di akaun DELIMa sekolah dan bimbing guru memasukkan data murid serta guru sehingga sedia digunakan. Selepas itu RM50 setahun untuk kemas kini dan sokongan."
     },
     {
       "sceneId": "langganan",
@@ -284,8 +288,8 @@ h2.tajuk { font-weight: 900; font-size: 84px; line-height: 1.02; letter-spacing:
   <div class="penuh tengah-v">
       <h2 class="tajuk">Pakej &amp; harga</h2>
       <div class="harga-dua">
-        <div class="harga utama" id="hg1"><small>Pakej Tasmik Digital</small><b>RM200</b><p>Bayaran pakej</p></div>
-        <div class="harga" id="hg2"><small>Langganan tahunan</small><b>RM50 <i>/ tahun</i></b><p>Kemas kini aplikasi &amp; data, tukar tahun, sokongan teknikal</p></div>
+        <div class="harga utama" id="hg1"><small>Pakej permulaan</small><b>RM200</b><ul class="hg-isi"><li>Pemasangan lengkap di akaun DELIMa sekolah</li><li>Bimbingan memasukkan data murid &amp; guru</li><li>Sedia digunakan oleh semua guru</li></ul></div>
+        <div class="harga" id="hg2"><small>Langganan tahunan</small><b>RM50 <i>/ tahun</i></b><ul class="hg-isi"><li>Kemas kini aplikasi &amp; data</li><li>Tukar tahun &amp; naik kelas</li><li>Sokongan teknikal berterusan</li></ul></div>
       </div></div>
   <div class="kaki"><span>Tasmik Digital</span></div>
 </div>
