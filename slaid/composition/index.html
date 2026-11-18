@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1920, height=1080" />
+<title>Tasmik Digital — Pembentangan</title>
+<script src="assets/vendor/gsap.min.js"></script>
+<script src="assets/vendor/hyperframe.runtime.iife.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #f2f6f4; font-family: "Inter", sans-serif; color: #0f2a22; }
+#root { position: relative; width: 1920px; height: 1080px; }
+.slaid { position: absolute; inset: 0; background: #f2f6f4; overflow: hidden; }
+.slaid::before { content: ""; position: absolute; right: -220px; top: -260px; width: 900px; height: 900px; border-radius: 50%; background: #e3efe9; }
+.kaki { position: absolute; left: 120px; bottom: 44px; font-weight: 700; font-size: 30px; color: #6b8a7f; letter-spacing: .02em; }
+.kaki span::before { content: ""; display: inline-block; width: 14px; height: 14px; border-radius: 4px; background: #0b5d4b; margin-right: 12px; vertical-align: 1px; }
+
+.kiri { position: absolute; left: 120px; top: 120px; width: 1020px; }
+.kiri.tengah-v { top: 50%; transform: translateY(-50%); }
+.penuh { position: absolute; left: 120px; right: 120px; top: 110px; }
+
+.jubin { width: 150px; height: 150px; border-radius: 38px; background: #0b5d4b; color: #fff; font-weight: 900; font-size: 66px;
+  display: flex; align-items: center; justify-content: center; letter-spacing: -0.04em; margin-bottom: 40px; box-shadow: 0 18px 40px rgba(11,93,75,.3); }
+h1.besar { font-weight: 900; font-size: 136px; line-height: 1; letter-spacing: -0.035em; }
+h2.tajuk { font-weight: 900; font-size: 84px; line-height: 1.02; letter-spacing: -0.03em; margin-bottom: 48px; }
+.sub { font-weight: 700; font-size: 48px; line-height: 1.3; color: #3d5a50; margin-top: 28px; }
+.kecil { font-weight: 700; font-size: 32px; color: #6b8a7f; margin-top: 48px; }
+
+.fon { position: absolute; left: 1270px; top: 82px; width: 528px; height: 917px; border-radius: 56px; background: #0f2a22; box-shadow: 0 30px 60px rgba(0,0,0,.22); z-index: 2; }
+.fon .skrin { position: absolute; left: 14px; top: 14px; width: 500px; height: 889px; border-radius: 44px; overflow: hidden; background: #fff; }
+.fon .vid { position: absolute; left: 0; top: 0; width: 500px; height: 889px; object-fit: cover; }
+
+.senarai-besar { list-style: none; display: flex; flex-direction: column; gap: 34px; margin-top: 10px; }
+.senarai-besar li { display: flex; align-items: center; gap: 36px; font-size: 52px; font-weight: 700; line-height: 1.2; }
+.senarai-besar b, .kotak b, .langkah b, .aliran b { flex: none; width: 84px; height: 84px; border-radius: 24px; background: #f4c34d; color: #3a2a00;
+  display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 44px; }
+
+.peranan { background: #fff; border-radius: 28px; padding: 28px 36px; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(15,42,34,.07); border-left: 12px solid #0b5d4b; }
+.peranan b { display: block; font-weight: 900; font-size: 46px; color: #0b5d4b; }
+.peranan span { display: block; font-weight: 500; font-size: 40px; line-height: 1.3; margin-top: 6px; }
+
+.langkah, .aliran { list-style: none; }
+.langkah li { display: flex; align-items: center; gap: 30px; font-size: 52px; font-weight: 700; margin-bottom: 30px; }
+.langkah em { font-style: normal; background: #f4c34d; padding: 0 12px; border-radius: 12px; }
+.butang-emas { position: absolute; left: 0; top: 640px; background: #0b5d4b; color: #fff; font-weight: 900; font-size: 42px; padding: 28px 40px; border-radius: 999px;
+  box-shadow: 0 14px 30px rgba(11,93,75,.3); }
+
+.titik { list-style: none; }
+.titik li { position: relative; padding-left: 56px; font-size: 48px; font-weight: 600; line-height: 1.3; margin-bottom: 30px; }
+.titik li::before { content: ""; position: absolute; left: 0; top: 18px; width: 26px; height: 26px; border-radius: 8px; background: #f4c34d; }
+.lencana { display: inline-block; font-size: 34px; font-weight: 800; padding: 4px 16px; border-radius: 999px; margin: 6px 6px 0 0; }
+.lencana.ok { background: #d8f0e2; color: #1b6b43; } .lencana.warn { background: #fdf0dc; color: #8a4a06; } .lencana.bad { background: #fbe1de; color: #9b2c22; }
+
+.kertas { position: absolute; left: 1250px; top: 70px; width: 600px; height: 849px; box-shadow: 0 26px 60px rgba(0,0,0,.2); border-radius: 6px; z-index: 2; }
+.zum-ui { position: absolute; left: 1080px; top: 230px; width: 760px; border-radius: 28px; box-shadow: 0 26px 60px rgba(0,0,0,.18); z-index: 2; }
+
+.grid-dua { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; }
+.kotak { background: #fff; border-radius: 28px; padding: 36px 40px; display: grid; grid-template-columns: 84px 1fr; column-gap: 30px; box-shadow: 0 8px 24px rgba(15,42,34,.07); }
+.kotak b { grid-row: span 2; }
+.kotak h3 { font-weight: 900; font-size: 44px; line-height: 1.1; }
+.kotak p { font-weight: 500; font-size: 40px; line-height: 1.25; color: #3d5a50; margin-top: 8px; }
+
+.aliran { display: flex; gap: 40px; margin-top: 40px; }
+.aliran li { flex: 1; background: #fff; border-radius: 32px; padding: 44px 40px; box-shadow: 0 8px 24px rgba(15,42,34,.07); font-size: 46px; font-weight: 700; line-height: 1.25; }
+.aliran li b { margin-bottom: 30px; }
+
+.harga-dua { display: flex; gap: 48px; margin-top: 30px; }
+.harga { flex: 1; background: #fff; border-radius: 36px; padding: 56px 60px; box-shadow: 0 10px 30px rgba(15,42,34,.08); }
+.harga.utama { background: #0b5d4b; color: #fff; }
+.harga small { display: block; font-weight: 700; font-size: 42px; opacity: .85; }
+.harga b { display: block; font-weight: 900; font-size: 150px; letter-spacing: -0.04em; line-height: 1.05; margin: 16px 0 20px; }
+.harga b i { font-style: normal; font-size: 52px; letter-spacing: 0; opacity: .8; }
+.harga.utama b { color: #f4c34d; }
+.harga p { font-weight: 600; font-size: 42px; line-height: 1.3; }
+
+.telegram { display: inline-flex; align-items: center; gap: 30px; background: #229ed9; color: #fff; padding: 30px 48px 30px 30px; border-radius: 999px; margin-top: 10px; }
+.telegram .tg { width: 110px; height: 110px; border-radius: 50%; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; }
+.telegram small { display: block; font-weight: 700; font-size: 34px; opacity: .9; }
+.telegram b { display: block; font-weight: 900; font-size: 68px; letter-spacing: -0.02em; }
+.qr { position: absolute; left: 1320px; top: 170px; width: 460px; background: #fff; border-radius: 36px; padding: 40px; box-shadow: 0 20px 50px rgba(0,0,0,.12); text-align: center; z-index: 2; }
+.qr img { width: 380px; height: auto; display: block; margin: 0 auto; }
+.qr small { display: block; font-weight: 700; font-size: 34px; color: #3d5a50; margin-top: 16px; }
+.penuh.tengah-v { top: 50%; transform: translateY(-56%); }
+.sub-grid { gap: 26px; }
+.sub-grid .kotak { padding: 26px 34px; }
+.sub-grid .kotak.lebar { grid-column: span 2; }
+.sub-grid .kotak h3 { font-size: 42px; }
+.sub-grid .kotak p { font-size: 36px; }
+
+</style>
+</head>
+<body>
+<script type="application/hyperframes-slideshow+json">
+{
+  "slides": [
+    {
+      "sceneId": "tajuk",
+      "notes": "Assalamualaikum. Perkenalkan diri. Tasmik Digital: rekod tasmik Al-Quran & Iqra terus dari telefon guru, data kekal dalam akaun DELIMa sekolah."
+    },
+    {
+      "sceneId": "masalah",
+      "notes": "Tanya hadirin: berapa lama masa diambil untuk laporan tasmik bulanan? Dedahkan satu-satu (Next).",
+      "fragments": [
+        5,
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "sceneId": "penyelesaian",
+      "notes": "Satu aplikasi, tiga pengguna. Tiada aplikasi perlu dipasang — buka di pelayar telefon, boleh \"Add to Home Screen\"."
+    },
+    {
+      "sceneId": "rekod",
+      "notes": "Video bermain sendiri. Tunjuk: cari murid → 3 bacaan terakhir → tekan +3 → Simpan. Jika ditanya tentang murid lompat muka surat, tekan butang emas.",
+      "autoplay": true,
+      "hotspots": [
+        {
+          "id": "h-lompat",
+          "label": "Murid lompat muka surat?",
+          "target": "lompat",
+          "region": {
+            "x": 6,
+            "y": 74,
+            "w": 40,
+            "h": 12
+          }
+        }
+      ]
+    },
+    {
+      "sceneId": "gb",
+      "notes": "Analisis Tasmik Mingguan: liputan setiap kelas sejak Isnin. Kelas yang rendah terus nampak.",
+      "autoplay": true
+    },
+    {
+      "sceneId": "laporan",
+      "notes": "Satu halaman A4: KPI, prestasi kelas, naik peringkat, khatam, guru paling aktif, perkara perlu perhatian. Sedia ditandatangan."
+    },
+    {
+      "sceneId": "khatam",
+      "notes": "Murid Tahun 6 yang belum khatam: berapa muka surat seminggu perlu dibaca untuk khatam sebelum tarikh sasaran. Status: Atas landasan / Perlu dipercepat / Berisiko."
+    },
+    {
+      "sceneId": "ibubapa",
+      "notes": "Ibu bapa buka pautan + kod anak. Nampak tahap, graf 3 bulan, dan ayat galakan automatik. Catatan guru tidak dipaparkan.",
+      "autoplay": true
+    },
+    {
+      "sceneId": "data",
+      "notes": "Penting untuk GB: data tidak keluar dari akaun sekolah. Sandaran automatik setiap Ahad, 8 salinan disimpan."
+    },
+    {
+      "sceneId": "pasang",
+      "notes": "Proses pemasangan dibuat bersama penyelaras. Senarai murid boleh diimport dari Excel/Sheet."
+    },
+    {
+      "sceneId": "harga",
+      "notes": "RM200 pakej. RM50 setahun untuk kemas kini sistem dan data, serta sokongan."
+    },
+    {
+      "sceneId": "langganan",
+      "notes": "Terangkan RM50 setahun: apa yang penyedia aplikasi buat untuk sekolah sepanjang tahun."
+    },
+    {
+      "sceneId": "hubungi",
+      "notes": "Terima kasih. Buka sesi soal jawab. Imbas kod QR untuk terus ke Telegram."
+    }
+  ],
+  "slideSequences": [
+    {
+      "id": "lompat",
+      "label": "Kesan lompat muka surat",
+      "slides": [
+        {
+          "sceneId": "lompat",
+          "notes": "Kotak 3 bacaan terakhir menanda \"lompat m/s\" bila ada muka surat tertinggal antara dua bacaan. Jika guru menaip muka surat yang tidak bersambung, sistem beri amaran."
+        }
+      ]
+    }
+  ]
+}
+</script>
+<div id="root" data-composition-id="root" data-start="0" data-duration="69.8" data-width="1920" data-height="1080">
+<div id="tajuk" class="slaid" data-composition-id="tajuk" data-start="0" data-duration="4" data-label="Tajuk" data-width="1920" data-height="1080">
+  <div class="kiri tengah-v">
+      <div class="jubin">TD</div>
+      <h1 class="besar">Tasmik Digital</h1>
+      <p class="sub">Rekod tasmik Al-Quran &amp; Iqra<br>terus dari telefon guru</p>
+      <p class="kecil">Pembentangan untuk pentadbir sekolah</p>
+    </div>
+    <div class="fon" id="tajuk-fon"><div class="skrin"><img class="vid" src="assets/skrin-gb.png" alt="Papan utama Guru Besar"></div></div>
+  <div class="kaki"><span>Tasmik Digital</span></div>
+</div>
+<div id="masalah" class="slaid" data-composition-id="masalah" data-start="4" data-duration="6" data-label="Cabaran" data-width="1920" data-height="1080">
+  <div class="penuh">
+      <h2 class="tajuk">Cabaran rekod tasmik hari ini</h2>
+      <ul class="senarai-besar">
+        <li id="m1"><b>1</b><span>Buku rekod hilang, rosak atau tertinggal di rumah guru</span></li>
+        <li id="m2"><b>2</b><span>Murid membaca di muka surat yang salah — tiada siapa perasan</span></li>
+        <li id="m3"><b>3</b><span>Laporan bulanan dikira dengan tangan, berjam-jam</span></li>
+        <li id="m4"><b>4</b><span>Ibu bapa tidak tahu kemajuan bacaan anak</span></li>
+      </ul></div>
+  <div class="kaki"><span>Tasmik Digital</span></div>
+</div>
+<div id="penyelesaian" class="slaid" data-composition-id="penyelesaian" data-start="10" data-duration="4" data-label="Penyelesaian" data-width="1920" data-height="1080">
+  <div class="kiri">
+      <h2 class="tajuk">Satu aplikasi,<br>semua pihak</h2>
+      <div class="peranan" id="p1"><b>Guru</b><span>Rekod tasmik dalam 3 sentuhan, walaupun tanpa internet</span></div>
+      <div class="peranan" id="p2"><b>Guru Besar &amp; Penyelaras</b><span>Analisis seluruh sekolah &amp; laporan A4 sekali klik</span></div>
+      <div class="peranan" id="p3"><b>Ibu bapa</b><span>Semak kemajuan anak dengan kod — tanpa log masuk</span></div>
+    </div>
+    <div class="fon" id="penyelesaian-fon"><div class="skrin"><img class="vid" src="assets/skrin-gb.png" alt="Papan utama"></div></div>
+  <div class="kaki"><span>Tasmik Digital</span></div>
+</div>
+<div id="rekod" class="slaid" data-composition-id="rekod" data-start="14" data-duration="13.6" data-label="Demo: rekod tasmik" data-width="1920" data-height="1080">
+  <div class="kiri">
+      <h2 class="tajuk">Rekod dalam<br>3 sentuhan</h2>
+      <ol class="langkah">
+        <li><b>1</b><span>Cari nama murid</span></li>
+        <li><b>2</b><span>Semak <em>3 bacaan terakhir</em></span></li>
+        <li><b>3</b><span>Tekan +m/s &amp; Simpan</span></li>
+      </ol>
+      <div class="butang-emas">Murid lompat muka surat? →</div>
+    </div>
+    <div class="fon" id="rekod-fon"><div class="skrin"><video id="rekod-vid" class="clip vid" data-start="0" data-duration="13.2" data-media-start="0.3" muted playsinline src="assets/klip-rekod.mp4"></video></div></div>
+  <div class="kaki"><span>Tasmik Digital</span></div>
+</div>
+<div id="gb" class="slaid" data-composition-id="gb" data-start="27.6" data-duration="4.2" data-label="Guru Besar" data-width="1920" data-height="1080">
+  <div class="kiri">
+      <h2 class="tajuk">Guru Besar nampak<br>setiap kelas</h2>
+      <ul class="titik"><li>Liputan tasmik minggu ini, ikut kelas</li><li>Peringkat bacaan seluruh sekolah</li><li>Murid perlu perhatian (lama tidak ditasmik)</li></ul>
+    </div>
+    <div class="fon" id="gb-fon"><div class="skrin"><video id="gb-vid" class="clip vid" data-start="0" data-duration="3.9" data-media-start="0" muted playsinline src="assets/klip-mingguan.mp4"></video></div></div>
+  <div class="kaki"><span>Tasmik Digital</span></div>
+</div>
+<div id="laporan" class="slaid" data-composition-id="laporan" data-start="31.8" data-duration="4" data-label="Laporan Bulanan" data-width="1920" data-height="1080">
+  <div class="kiri">
+      <h2 class="tajuk">Laporan Bulanan A4,<br>satu klik</h2>
+      <ul class="titik"><li>Prestasi setiap kelas &amp; jumlah</li><li>Murid naik peringkat &amp; khatam</li><li>Ruang tandatangan Penyelaras &amp; GB</li></ul>
+    </div>
+    <img class="kertas" id="laporan-kertas" src="assets/laporan-a4.png" alt="Contoh Laporan Bulanan A4">
+  <div class="kaki"><span>Tasmik Digital</span></div>
+</div>
+<div id="khatam" class="slaid" data-composition-id="khatam" data-start="35.8" data-duration="4" data-label="Sasaran Khatam" data-width="1920" data-height="1080">
+  <div class="kiri">
+      <h2 class="tajuk">Sasaran Khatam<br>Tahun 6</h2>
+      <ul class="titik"><li>Baki muka surat setiap murid</li><li>Muka surat seminggu yang perlu dibaca</li><li>Status: <span class="lencana ok">Atas landasan</span> <span class="lencana warn">Perlu dipercepat</span> <span class="lencana bad">Berisiko</span></li></ul>
+    </div>
+    <div class="fon" id="khatam-fon"><div class="skrin"><img class="vid" src="assets/skrin-khatam.png" alt="Sasaran Khatam Tahun 6"></div></div>
+  <div class="kaki"><span>Tasmik Digital</span></div>
+</div>
+<div id="ibubapa" class="slaid" data-composition-id="ibubapa" data-start="39.8" data-duration="6" data-label="Ibu bapa" data-width="1920" data-height="1080">
+  <div class="kiri">
+      <h2 class="tajuk">Ibu bapa tahu<br>kemajuan anak</h2>
+      <ul class="titik"><li>Akses dengan kod — tanpa log masuk</li><li>Graf bacaan 3 bulan</li><li>Kata galakan automatik</li></ul>
+    </div>
+    <div class="fon" id="ibubapa-fon"><div class="skrin"><video id="ibubapa-vid" class="clip vid" data-start="0" data-duration="5.6" data-media-start="0.2" muted playsinline src="assets/klip-ibubapa.mp4"></video></div></div>
+  <div class="kaki"><span>Tasmik Digital</span></div>
+</div>
+<div id="data" class="slaid" data-composition-id="data" data-start="45.8" data-duration="4" data-label="Keselamatan data" data-width="1920" data-height="1080">
+  <div class="penuh tengah-v">
+      <h2 class="tajuk">Data kekal milik sekolah</h2>
+      <div class="grid-dua">
+        <div class="kotak"><b>1</b><h3>Google Drive DELIMa sekolah</h3><p>Data disimpan dalam Google Sheet akaun sekolah sendiri</p></div>
+        <div class="kotak"><b>2</b><h3>Sandaran setiap minggu</h3><p>Salinan automatik setiap Ahad, 8 salinan terakhir</p></div>
+        <div class="kotak"><b>3</b><h3>Akaun ikut peranan</h3><p>Guru, Penyelaras, Guru Besar — setiap guru nampak kelasnya</p></div>
+        <div class="kotak"><b>4</b><h3>Boleh tanpa internet</h3><p>Rekod disimpan dahulu, dihantar bila talian ada</p></div>
+      </div></div>
+  <div class="kaki"><span>Tasmik Digital</span></div>
+</div>
+<div id="pasang" class="slaid" data-composition-id="pasang" data-start="49.8" data-duration="4" data-label="Pemasangan" data-width="1920" data-height="1080">
+  <div class="penuh tengah-v">
+      <h2 class="tajuk">Bagaimana bermula</h2>
+      <ol class="aliran">
+        <li><b>1</b><span>Sediakan Google Sheet dalam akaun DELIMa sekolah</span></li>
+        <li><b>2</b><span>Import senarai murid &amp; guru</span></li>
+        <li><b>3</b><span>Guru log masuk &amp; terus merekod</span></li>
+      </ol></div>
+  <div class="kaki"><span>Tasmik Digital</span></div>
+</div>
+<div id="harga" class="slaid" data-composition-id="harga" data-start="53.8" data-duration="4" data-label="Harga" data-width="1920" data-height="1080">
+  <div class="penuh tengah-v">
+      <h2 class="tajuk">Pakej &amp; harga</h2>
+      <div class="harga-dua">
+        <div class="harga utama" id="hg1"><small>Pakej Tasmik Digital</small><b>RM200</b><p>Bayaran pakej</p></div>
+        <div class="harga" id="hg2"><small>Langganan tahunan</small><b>RM50 <i>/ tahun</i></b><p>Kemas kini aplikasi &amp; data, tukar tahun, sokongan teknikal</p></div>
+      </div></div>
+  <div class="kaki"><span>Tasmik Digital</span></div>
+</div>
+<div id="langganan" class="slaid" data-composition-id="langganan" data-start="57.8" data-duration="4" data-label="Langganan tahunan" data-width="1920" data-height="1080">
+  <div class="penuh tengah-v">
+      <h2 class="tajuk">Langganan RM50 setahun merangkumi</h2>
+      <div class="grid-dua sub-grid">
+        <div class="kotak"><b>1</b><h3>Kemas kini aplikasi</h3><p>Versi baharu, ciri baharu &amp; pembaikan</p></div>
+        <div class="kotak"><b>2</b><h3>Tukar tahun persekolahan</h3><p>Naik kelas murid &amp; persediaan tahun baharu</p></div>
+        <div class="kotak"><b>3</b><h3>Kemas kini data</h3><p>Import murid baharu, pindah kelas &amp; guru</p></div>
+        <div class="kotak"><b>4</b><h3>Pemulihan data &amp; akaun</h3><p>Pulih dari sandaran, reset kata laluan guru</p></div>
+        <div class="kotak lebar"><b>5</b><h3>Sokongan teknikal melalui Telegram</h3><p>Bantuan apabila guru atau penyelaras menghadapi masalah</p></div>
+      </div></div>
+  <div class="kaki"><span>Tasmik Digital</span></div>
+</div>
+<div id="hubungi" class="slaid" data-composition-id="hubungi" data-start="61.8" data-duration="4" data-label="Hubungi" data-width="1920" data-height="1080">
+  <div class="kiri tengah-v">
+      <h2 class="tajuk">Berminat?<br>Hubungi kami</h2>
+      <div class="telegram"><span class="tg"><svg viewBox="0 0 24 24" width="64" height="64"><path fill="#fff" d="M21.5 3.6 2.9 10.8c-1.3.5-1.3 1.2-.2 1.6l4.8 1.5 1.8 5.6c.2.6.1.9.8.9.5 0 .7-.2 1-.5l2.3-2.3 4.9 3.6c.9.5 1.5.2 1.8-.8l3.2-15.1c.3-1.3-.5-1.9-1.8-1.3zM8.3 13.6l10.6-6.7c.5-.3 1-.1.6.2l-9 8.2-.4 3.8-1.8-5.5z"/></svg></span><div><small>Telegram</small><b>@Hafiz_0391</b></div></div>
+      <p class="sub">Terima kasih. Soal jawab.</p>
+    </div>
+    <div class="qr"><img src="assets/qr-telegram.png" alt="Kod QR Telegram @Hafiz_0391"><small>Imbas dengan kamera telefon</small></div>
+  <div class="kaki"><span>Tasmik Digital</span></div>
+</div>
+<div id="lompat" class="slaid" data-composition-id="lompat" data-start="65.8" data-duration="4" data-label="Kesan lompat muka surat" data-width="1920" data-height="1080">
+  <div class="kiri">
+      <h2 class="tajuk">Tiada lagi<br>"tersalah tempat"</h2>
+      <ul class="titik"><li><span class="lencana warn">lompat m/s</span> ditanda automatik</li><li>Amaran jika muka surat tidak bersambung</li><li>Guru semak sebelum menyimpan</li></ul>
+    </div>
+    <img class="zum-ui" id="lompat-img" src="assets/tiga-bacaan.png" alt="Kotak 3 bacaan terakhir">
+  <div class="kaki"><span>Tasmik Digital</span></div>
+</div>
+</div>
+<script>
+window.__timelines = window.__timelines || {};
+window.__timelines["root"] = gsap.timeline({ paused: true });
+(function () { const tl = gsap.timeline({ paused: true });
+tl.fromTo("#tajuk .kiri > *", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.1);tl.fromTo("#tajuk-fon", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.3);
+window.__timelines["tajuk"] = tl; })();
+(function () { const tl = gsap.timeline({ paused: true });
+tl.fromTo("#m1", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.4, ease: "expo.out" }, 0.5);
+tl.fromTo("#m2", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.4, ease: "expo.out" }, 1.5);
+tl.fromTo("#m3", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.4, ease: "expo.out" }, 2.5);
+tl.fromTo("#m4", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.4, ease: "expo.out" }, 3.5);
+window.__timelines["masalah"] = tl; })();
+(function () { const tl = gsap.timeline({ paused: true });
+tl.fromTo("#penyelesaian .peranan", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.2);
+window.__timelines["penyelesaian"] = tl; })();
+(function () { const tl = gsap.timeline({ paused: true });
+tl.fromTo("#rekod .langkah li", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.2);
+window.__timelines["rekod"] = tl; })();
+(function () { const tl = gsap.timeline({ paused: true });
+tl.fromTo("#gb .titik li", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.2);
+window.__timelines["gb"] = tl; })();
+(function () { const tl = gsap.timeline({ paused: true });
+tl.fromTo("#laporan .titik li", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.2);tl.fromTo("#laporan-kertas", { opacity: 0, y: 80 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.3);
+window.__timelines["laporan"] = tl; })();
+(function () { const tl = gsap.timeline({ paused: true });
+tl.fromTo("#khatam .titik li", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.2);
+window.__timelines["khatam"] = tl; })();
+(function () { const tl = gsap.timeline({ paused: true });
+tl.fromTo("#ibubapa .titik li", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.2);
+window.__timelines["ibubapa"] = tl; })();
+(function () { const tl = gsap.timeline({ paused: true });
+tl.fromTo("#data .kotak", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.2);
+window.__timelines["data"] = tl; })();
+(function () { const tl = gsap.timeline({ paused: true });
+tl.fromTo("#pasang .aliran li", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.2);
+window.__timelines["pasang"] = tl; })();
+(function () { const tl = gsap.timeline({ paused: true });
+tl.fromTo("#harga .harga", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.2);
+window.__timelines["harga"] = tl; })();
+(function () { const tl = gsap.timeline({ paused: true });
+tl.fromTo("#langganan .kotak", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.2);
+window.__timelines["langganan"] = tl; })();
+(function () { const tl = gsap.timeline({ paused: true });
+tl.fromTo("#hubungi .kiri > *", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.1);tl.fromTo("#hubungi .qr", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.3);
+window.__timelines["hubungi"] = tl; })();
+(function () { const tl = gsap.timeline({ paused: true });
+tl.fromTo("#lompat .titik li", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.2);tl.fromTo("#lompat-img", { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.12 }, 0.3);
+window.__timelines["lompat"] = tl; })();
+</script>
+</body>
+</html>
